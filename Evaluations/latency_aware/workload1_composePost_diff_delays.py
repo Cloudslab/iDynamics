@@ -89,6 +89,7 @@ import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Pool
+from datetime import datetime
 
 def main():
     node_details = {
@@ -105,17 +106,19 @@ def main():
 
     thread_num = 8
     connections = 100
-    duration = '40m'  # Total duration
-    delay_changing_interval = 5 * 60  # Change delay every 5 minutes
+    duration = '15m' #'40m'  # Total duration in minutes 
+    delay_changing_interval = 3 * 60 #5 * 60  # Change delay every 5 minutes
     
-    QPS_trend = [30, 18, 40, 30, 10, 34, 55, 40, 48, 20]  # Trend of QPS values over time
+    QPS_trend = [30,15,40] #[30, 18, 40, 30, 10, 34, 55, 40, 48, 20]  # Trend of QPS values over time
     script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/compose-post.lua"
     urls = [
         "http://nginx-thrift.social-network.svc.cluster.local:8080/wrk2-api/post/compose",
         "http://nginx-thrift.social-network2.svc.cluster.local:8080/wrk2-api/post/compose",
         # "http://nginx-thrift.social-network3.svc.cluster.local:8080/wrk2-api/post/compose"
     ]
-    output_file = "/home/ubuntu/iDynamics/Evaluations/latency_aware/workload1_result1.txt"
+    timestamp = datetime.now().strftime("%Y_%b_%d_%H%M")  # Example: 2024_Oct_20_1930
+
+    output_file = f"/home/ubuntu/iDynamics/Evaluations/latency_aware/data/{timestamp}_workload1_wrk_result1.txt"
 
     # Total number of intervals equal to the length of QPS_trend
     total_duration_seconds = int(duration.replace('m', '')) * 60  # Convert duration to seconds

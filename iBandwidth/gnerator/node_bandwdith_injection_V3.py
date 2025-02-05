@@ -1,4 +1,5 @@
-import random, datetime
+import random
+from datetime import datetime
 # import csv
 import paramiko
 import logging
@@ -8,7 +9,7 @@ from multiprocessing import Pool
 # Configure logging
 timestamp = datetime.now().strftime("%Y_%b_%d_%H%M")  # Example: 2024_Oct_20_1930
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(processName)s] %(message)s', filename=f'{timestamp}_bandwidth_injection.log')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(processName)s] %(message)s', filename=f'/home/ubuntu/iDynamics/iBandwidth/gnerator/{timestamp}_bandwidth_injection.log')
 # Function to generate a bandwidth matrix for a given number of nodes
 def generate_bandwidth_matrix(num_nodes, min_bandwidth=200, max_bandwidth=600):
     bandwidth_matrix = [[0 if i == j else random.randint(min_bandwidth, max_bandwidth)
