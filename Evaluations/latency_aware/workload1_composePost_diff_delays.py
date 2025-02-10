@@ -106,15 +106,15 @@ def main():
 
     thread_num = 8
     connections = 100
-    duration = '15m' #'40m'  # Total duration in minutes 
-    delay_changing_interval = 3 * 60 #5 * 60  # Change delay every 5 minutes
+    duration = '40m' #'40m'  # Total duration in minutes 
+    delay_changing_interval = 5 * 60 #5 * 60  # Change delay every 5 minutes
     
-    QPS_trend = [30,15,40] #[30, 18, 40, 30, 10, 34, 55, 40, 48, 20]  # Trend of QPS values over time
+    QPS_trend = [30, 18, 40, 30, 10, 34, 55, 40, 48, 20]  # Trend of QPS values over time
     script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/compose-post.lua"
     urls = [
         "http://nginx-thrift.social-network.svc.cluster.local:8080/wrk2-api/post/compose",
         "http://nginx-thrift.social-network2.svc.cluster.local:8080/wrk2-api/post/compose",
-        # "http://nginx-thrift.social-network3.svc.cluster.local:8080/wrk2-api/post/compose"
+        "http://nginx-thrift.social-network3.svc.cluster.local:8080/wrk2-api/post/compose"
     ]
     timestamp = datetime.now().strftime("%Y_%b_%d_%H%M")  # Example: 2024_Oct_20_1930
 
