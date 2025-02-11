@@ -105,7 +105,7 @@ def main():
     }
 
     thread_num = 8
-    connections = 100
+    connections = 64
     duration = '40m' #'40m'  # Total duration in minutes 
     delay_changing_interval = 5 * 60 #5 * 60  # Change delay every 5 minutes
     
@@ -132,11 +132,11 @@ def main():
             if delay_changing_interval == 0:
                 delay_matrix = generate_delay_matrix(9, 0, 0)
             elif delay_changing_interval == 1:
-                delay_matrix = generate_delay_matrix(9, 5, 20)
+                delay_matrix = generate_delay_matrix(9, 5, 10)
             elif delay_changing_interval == 2:
-                delay_matrix = generate_delay_matrix(9, 5, 40)
-            else:
                 delay_matrix = generate_delay_matrix(9, 5, 30)
+            else:
+                delay_matrix = generate_delay_matrix(9, 5, 20)
 
             # Apply latency injection
             params_list = [(source_node, delay_matrix, node_details) for source_node in node_details.keys()]
@@ -178,7 +178,7 @@ def main():
             time.sleep(max(0, current_interval_start + interval_duration - time.time()))
 
     # Running both tasks in parallel
-    with ThreadPoolExecutor(max_workers=2) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         executor.submit(latency_task)  # Task for applying latency
         executor.submit(workload_task)  # Task for sending workload requests
 
