@@ -15,7 +15,7 @@ class NetMARKS_Policy(AbstractSchedulingPolicy):
         NetMARKS-specific initialization. 
         e.g., set up a Prometheus client, read config parameters, etc.
         """
-        prom_url = config.get("prom_url", "http://localhost:9090")
+        prom_url = config.get("prom_url", "http://10.105.116.175:9090") # change to your OWN Prometheus URL
         self.prom = PrometheusConnect(url=prom_url, disable_ssl=True)
         self.namespace = config.get("namespace", "default")
         self.timerange = config.get("timerange", 1)

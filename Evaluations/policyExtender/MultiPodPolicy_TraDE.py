@@ -16,7 +16,7 @@ class TraDE_Policy(AbstractSchedulingPolicy):
         self.num_workers = config.get("num_workers", mp.cpu_count())
         # Possibly load other config for measuring delay_matrix, etc.
 
-    def schedule_pod(self, pod: PodInfo, candidate_nodes: List[NodeInfo]) -> SchedulingDecision:
+    def schedule_pod(self, pod: PodInfo, candidate_nodes: list[NodeInfo]) -> SchedulingDecision:
         """
         If someone calls the single-pod scheduling method, you can either do a fallback 
         or run a trivial version of TraDE. 
