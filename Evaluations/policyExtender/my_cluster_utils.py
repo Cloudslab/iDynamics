@@ -1,5 +1,6 @@
 # my_cluster_utils.py
 
+from ast import Tuple
 import os
 from kubernetes import client, config
 from typing import List
@@ -66,7 +67,7 @@ def gather_all_pods(namespace: str = None) -> List[client.V1Pod]:
     returns pods from that namespace; otherwise returns pods across all namespaces.
     """
     try:
-        config.load_incluster_config()
+        config.load_incluster_config() # Load in-cluster config if available from a pod within the cluster
     except:
         config.load_kube_config()
 
@@ -178,6 +179,93 @@ def build_podinfo_objects(raw_pods: List[client.V1Pod]) -> List[PodInfo]:
         podinfo_list.append(pod_info)
 
     return podinfo_list
+
+from typing import Tuple
+from prometheus_api_client import PrometheusConnect
+from datetime import datetime, timedelta
+import math
+
+def fetch_live_node_usage_prometheus(node_name: str,
+                                     prom_url: str = "http://localhost:9090") -> Tuple[float, float]: # NEED to specify the node name and prometheus urls
+    """
+    Fetch approximate CPU usage (in cores) and memory usage (in MiB) for a node
+    from Prometheus using typical node_exporter metrics. 
+    This is just an EXAMPLE. You must adjust your query and label matching 
+    to match how your metrics are actually labeled!
+    """
+    prom = PrometheusConnect(url=prom_url, disable_ssl=True)
+
+    # 1. Build a time range for the query. We query the instantaneous rate at "now"
+    end_time = datetime.now()
+    start_time = end_time - timedelta(minutes=5)  # 5-min window
+
+    # 2. CPU Usage Query
+    #
+    # Here’s a typical pattern:
+    #   100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle",instance="<node>:..."}[5m])))
+    # if using IP addresses, you can use "instance=~'<Node_ip>:.*'"
+    # if using node names, you can use "node=~'<node_host_name>:.*'"
+    # That yields a percentage of CPU usage. We'll convert it to fractional cores 
+    # by multiplying by the node’s CPU count or by using a different formula.
+    #
+    # Alternatively, if you want total CPU usage in cores:
+    #   sum by (instance) (rate(node_cpu_seconds_total{mode!="idle",instance="<node>"}[5m]))
+    #
+    # For demonstration, let's do the sum of all non-idle cores usage:
+    cpu_query = f'''
+      sum by (instance) (
+        rate(node_cpu_seconds_total{{mode!="idle", node=~"{node_name}.*"}}[5m])
+      )
+    '''
+    # The instance label often looks like "ip:9100" or "node_name:9100". Adjust as needed.
+
+    cpu_data = prom.custom_query_range(
+        query=cpu_query,
+        start_time=start_time,
+        end_time=end_time,
+        step="30s" # 30s resolution
+    )
+
+    cpu_usage_cores = 0.0
+    if cpu_data:
+        # Usually, you'll get a list of results. Let's take the last value from the first result.
+        values = cpu_data[0]['values']  # array of [timestamp, value]
+        if values:
+            # take the most recent data point
+            _, val_str = values[-1]
+            cpu_usage_cores = float(val_str)  # e.g. "2.3" -> 2.3 cores
+
+    # 3. Memory Usage Query
+    #
+    # A typical node_exporter metric is node_memory_MemTotal_bytes and node_memory_MemAvailable_bytes.
+    # You can compute used = total - available. We'll do that for the node, then convert to MiB.
+    mem_query = f'''
+      node_memory_MemTotal_bytes{{node=~"{node_name}.*"}}
+      -
+      node_memory_MemAvailable_bytes{{node=~"{node_name}.*"}}
+    '''
+    mem_data = prom.custom_query_range(
+        query=mem_query,
+        start_time=start_time,
+        end_time=end_time,
+        step="30s"
+    )
+
+    mem_usage_mib = 0.0
+    if mem_data:
+        values = mem_data[0]['values']
+        if values:
+            _, val_str = values[-1]
+            used_bytes = float(val_str)
+            mem_usage_mib = used_bytes / (1024.0 * 1024.0)
+
+    return (cpu_usage_cores, mem_usage_mib)
+# Example of using the above fetch_live_node_usage_prometheus function:
+# node_name = "k8s-worker-1"
+# prom_url = "http://10.105.116.175:9090"
+# cpu_usage, mem_usage = fetch_live_node_usage_prometheus(node_name, prom_url=prom_url)
+# print(f"Node {node_name} => CPU usage: {cpu_usage:.2f} cores, Memory usage: {mem_usage:.1f} MiB")
+
 
 # ---------------------------------------------------------------------
 # Helper functions

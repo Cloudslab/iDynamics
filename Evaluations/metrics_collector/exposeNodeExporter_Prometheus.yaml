@@ -1,0 +1,21 @@
+# (1) Install Node Exporter
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm repo update
+# helm install node-exporter prometheus-community/prometheus-node-exporter -n kube-system
+#(2) Run following yaml file to expose Node Exporter metrics to Prometheus
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-exporter
+  namespace: kube-system # or whichever namespace Node Exporter is in
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter # match the labels from Node Exporter’s Service or Pods
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  endpoints:
+    - port: metrics # or "http-metrics" or whatever is exposed
+      interval: 15s
