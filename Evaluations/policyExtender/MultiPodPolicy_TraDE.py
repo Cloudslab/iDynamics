@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from kubernetes import client
 from prometheus_api_client import PrometheusConnect
-from AbstractPolicyClass import AbstractSchedulingPolicy, SchedulingDecision, PodInfo, NodeInfo
+from my_policy_interface import AbstractSchedulingPolicy, SchedulingDecision, PodInfo, NodeInfo
 
 class TraDE_Policy(AbstractSchedulingPolicy):
     def __init__(self):

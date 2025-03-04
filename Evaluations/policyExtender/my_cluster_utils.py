@@ -4,9 +4,7 @@ from ast import Tuple
 import os
 from kubernetes import client, config
 from typing import List
-
-# Suppose these are your domain classes or they live in a separate file:
-# from my_policy_interface import NodeInfo, PodInfo
+from my_policy_interface import NodeInfo, PodInfo
 
 class NodeInfo:
     """
@@ -97,6 +95,7 @@ def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
     # If you want to incorporate usage from metrics, see note below.
     for node in raw_nodes:
         node_name = node.metadata.name
+        print(f"node_name: {node_name}")
         
         # Example: parse CPU capacity in cores (converting from millicores if needed)
         # Node capacity might be 'cpu': '4', or '4000m' => 4 cores
@@ -111,10 +110,14 @@ def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
         mem_capacity = _convert_memory_to_mebibytes(mem_capacity_str)
 
         # Usage can be fetched from metrics if desired:
-        # current_cpu_usage, current_mem_usage = fetch_live_node_usage(node_name)
-        # For now, let's set them to 0 or placeholders:
-        current_cpu_usage = 0.0
-        current_mem_usage = 0.0
+          
+        # PROMETHEUS Service URL and port; 
+        # Option 1: Find with command "kuebctl get svc -A"; prom_url = "http://<cluster-ip>:<port>" = "http://10.105.116.175:9090"
+        # OPtion 2: use the provided following function " prom_url = find_prometheus_url_in_all_namespaces() "
+        current_cpu_usage, current_mem_usage = fetch_live_node_usage_prometheus(node_name=node_name, prom_url="http://10.105.116.175:9090") 
+        # for easier calculation, make the cpu_usage and mem_usage as float with two decimal points
+        current_cpu_usage = math.ceil(current_cpu_usage * 100) / 100
+        current_mem_usage = math.ceil(current_mem_usage * 100) / 100
 
         # Build the NodeInfo object
         node_info = NodeInfo(
@@ -180,22 +183,22 @@ def build_podinfo_objects(raw_pods: List[client.V1Pod]) -> List[PodInfo]:
 
     return podinfo_list
 
-from typing import Tuple
+from typing import Tuple # different from "from ast import Tuple", which is used for type hints, not for returning a tuple
 from prometheus_api_client import PrometheusConnect
 from datetime import datetime, timedelta
 import math
 
+# the 'live' is the recent last 5 minutes usage data. 'live' is not the real-time usage data here.
+# 5 min is configured and can be changed in the following function
 def fetch_live_node_usage_prometheus(node_name: str,
                                      prom_url: str = "http://localhost:9090") -> Tuple[float, float]: # NEED to specify the node name and prometheus urls
     """
     Fetch approximate CPU usage (in cores) and memory usage (in MiB) for a node
     from Prometheus using typical node_exporter metrics. 
-    This is just an EXAMPLE. You must adjust your query and label matching 
-    to match how your metrics are actually labeled!
     """
     prom = PrometheusConnect(url=prom_url, disable_ssl=True)
 
-    # 1. Build a time range for the query. We query the instantaneous rate at "now"
+    # 1. Build a time range for the query. We query the rate at "now"
     end_time = datetime.now()
     start_time = end_time - timedelta(minutes=5)  # 5-min window
 
@@ -355,3 +358,51 @@ def _convert_memory_to_mebibytes(mem_str: str) -> float:
     return val / (1024.0 * 1024.0)
 
 
+from kubernetes import client, config
+
+def find_prometheus_url_in_all_namespaces():
+    """
+    Searches all namespaces for a Service whose name includes 'prometheus'.
+    Returns a single URL string like 'http://<cluster-ip>:<port>' for the first match,
+    or None if not found.
+    """
+    # Load kube config (for local) or in-cluster config (if running in a Pod).
+    # Typically, you'd do one or the other depending on your environment.
+    try:
+        config.load_kube_config()  # Use local ~/.kube/config
+    except:
+        config.load_incluster_config()  # If the script is running inside the cluster
+
+    # Initialize the CoreV1 API
+    v1 = client.CoreV1Api()
+
+    # List all services in all namespaces
+    all_services = v1.list_service_for_all_namespaces()
+
+    # Look for a service name containing 'prometheus'
+    for svc in all_services.items:
+        svc_name = svc.metadata.name.lower()
+        if 'prometheus' in svc_name:
+            # Found a potential Prometheus service
+            cluster_ip = svc.spec.cluster_ip  # e.g., 10.105.116.175
+            if not cluster_ip or cluster_ip == "None":
+                # e.g. headless service that doesn't have a ClusterIP
+                continue
+
+            # If there's at least one port, pick the first
+            if not svc.spec.ports:
+                continue
+            port = svc.spec.ports[0].port  # e.g. 9090
+
+            # Return the first valid match
+            #print(f"Prometheus URL found: {url}")
+            return f"http://{cluster_ip}:{port}"
+
+    # If no matching service was found, return None
+    print("No Prometheus service found in any namespace.")
+    return None
+# url = find_prometheus_url_in_all_namespaces()
+# if url:
+#     print(f"Prometheus URL found: {url}")
+# else:
+#     print("No Prometheus service found in any namespace.")

@@ -29,6 +29,9 @@ class AbstractSchedulingPolicy(ABC):
     @abstractmethod
     def initialize_policy(self, config: dict) -> None:
         """
+        Load the Prometheus URL, or set up connections or configuration objects if needed.
+        
+    
         Called once when the policy is created.
         """
         pass
@@ -36,6 +39,8 @@ class AbstractSchedulingPolicy(ABC):
     @abstractmethod
     def schedule_pod(self, pod: PodInfo, candidate_nodes: List[NodeInfo]) -> SchedulingDecision:
         """
+        Basic single-Pod scheduling method (eg., NetMARKS))
+        
         Return a SchedulingDecision for a single pod.
         """
         pass
@@ -43,6 +48,8 @@ class AbstractSchedulingPolicy(ABC):
     @abstractmethod
     def schedule_all(self, pods: List[PodInfo], candidate_nodes: List[NodeInfo]) -> List[SchedulingDecision]:
         """
+        Batch or multi-service scheduling. (eg., TraDE)
+        
         *Optional extension.* Return scheduling decisions for a batch of Pods simultaneously.
         This is useful for multi-service or multi-pod optimization.
         """
@@ -51,6 +58,9 @@ class AbstractSchedulingPolicy(ABC):
     @abstractmethod
     def on_update_metrics(self, nodes: List[NodeInfo]) -> None:
         """
+        Respond to new telemetry. 
+        For instance, if the user triggers a “re-scheduling event,” you can gather new usage data here.
+        
         Called periodically if metrics are updated at runtime.
         """
         pass

@@ -1,7 +1,7 @@
 from kubernetes import client
 from prometheus_api_client import PrometheusConnect
-import AbstractPolicyClass
-from AbstractPolicyClass import AbstractSchedulingPolicy, SchedulingDecision, PodInfo, NodeInfo
+import my_policy_interface as my_policy_interface
+from my_policy_interface import AbstractSchedulingPolicy, SchedulingDecision, PodInfo, NodeInfo
 class NetMARKS_Policy(AbstractSchedulingPolicy):
     def __init__(self):
         # Will store references/config in initialize_policy
