@@ -27,9 +27,9 @@ class PodInfo:
 
 class SchedulingDecision:
     # return the PodIno obeject and NodeInfo object
-    def __init__(self, pod: PodInfo, node: NodeInfo):
-        self.pod = pod
-        self.node = node
+    def __init__(self, podInfo_obj: PodInfo, nodeIno_obj: NodeInfo):
+        self.podInfo_obj = podInfo_obj
+        self.nodeIno_obj = nodeIno_obj
 
 class AbstractSchedulingPolicy(ABC):
     @abstractmethod

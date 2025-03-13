@@ -5,6 +5,7 @@ import os
 # from tkinter.font import names
 from kubernetes import client, config
 from typing import List
+
 from iDynamicsPackagesModules.SchedulingPolicyExtender.my_policy_interface import NodeInfo, PodInfo
 from iDynamicsPackagesModules.NetworkingDynamicsManager.node_delay_measure_ParallelComp import measure_http_latency
 from iDynamicsPackagesModules.NetworkingDynamicsManager.node_bandwidth_measure_ParallelComp import measure_bandwidth
@@ -37,12 +38,12 @@ class PodInfo:
     def __init__(self, pod_name: str,
                  cpu_req: float,
                  mem_req: float,
-                 sla_latency_requirement: float,
+                 sla_requirement: float,
                  deployment_name: str = None):
         self.pod_name = pod_name
         self.cpu_req = cpu_req
         self.mem_req = mem_req
-        self.sla_latency_requirement = sla_latency_requirement
+        self.sla_requirement = sla_requirement
         self.deployment_name = deployment_name
 
 def gather_all_nodes() -> List[client.V1Node]:
@@ -61,6 +62,24 @@ def gather_all_nodes() -> List[client.V1Node]:
     v1 = client.CoreV1Api()
     raw_nodes = v1.list_node().items
     return raw_nodes
+
+def gather_worker_nodes(exclude_node_name: str = 'k8s-master') -> List[client.V1Node]:
+    """
+    Quickly gather all nodes excluding 'k8s-master' using a field selector.
+    """
+    try:
+        config.load_incluster_config()
+    except:
+        config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    raw_nodes = v1.list_node(field_selector=f'metadata.name!={exclude_node_name}').items
+    return raw_nodes
+
+# Example usage:
+# worker_nodes = gather_worker_nodes()
+# print([node.metadata.name for node in worker_nodes])
+
 
 def gather_all_pods(namespace: str = None) -> List[client.V1Pod]:
     """
@@ -209,7 +228,8 @@ def build_podinfo_objects(raw_pods: List[client.V1Pod], namespace: str) -> List[
                     total_mem_req += _convert_memory_to_mebibytes(mem_req_str)
 
         # Suppose we store the Deployment name for reference:
-        deployment_name = get_deployment_from_pod(pod)
+        pod_namespace = pod.metadata.namespace
+        deployment_name = get_deployment_from_pod(pod_name, pod_namespace)
 
         # If your system has an SLA or desired latency requirement:
         # You could store it in an annotation, or pass it in from somewhere else.
@@ -469,6 +489,29 @@ def get_deployment_from_pod(pod_name: str, namespace: str) -> str:
 
 # Usage example:
 # print(get_deployment_from_pod("your-pod-name", "namespace"))
+
+
+def get_pod_names_from_deployment(microservice_name, namespace='default'):
+    config.load_kube_config()
+    api = client.CoreV1Api()
+    apps_api = client.AppsV1Api()
+
+    # Get deployment details
+    deployment = apps_api.read_namespaced_deployment(microservice_name, namespace)
+
+    # Extract selector labels from deployment
+    selector_labels = deployment.spec.selector.match_labels
+    label_selector = ','.join([f'{k}={v}' for k, v in selector_labels.items()])
+
+    # List pods matching these labels
+    pods = api.list_namespaced_pod(namespace, label_selector=label_selector)
+
+    # Return pod names
+    return [pod.metadata.name for pod in pods.items]
+
+# Example usage:
+# pod_names = get_pod_names_from_microservice("your-microservice-name", "your-namespace")
+# print(pod_names)
 
 
 

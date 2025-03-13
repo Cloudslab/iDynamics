@@ -9,7 +9,9 @@ from datetime import datetime, timedelta
 
 from iDynamicsPackagesModules.GraphDynamicsAnalyzer  import graph_builder
 from iDynamicsPackagesModules.SchedulingPolicyExtender.my_policy_interface import AbstractSchedulingPolicy, NodeInfo, PodInfo, SchedulingDecision
-from iDynamicsPackagesModules.SchedulingPolicyExtender.my_cluster_utils import gather_all_nodes, gather_all_pods, build_nodeinfo_objects, build_podinfo_objects, get_deployment_from_pod
+from iDynamicsPackagesModules.SchedulingPolicyExtender.my_cluster_utils import (
+    gather_worker_nodes, gather_all_pods, build_nodeinfo_objects, 
+    build_podinfo_objects, get_deployment_from_pod, get_pod_names_from_deployment)
 
 ########################################################################
 # Policy1: Call-Graph–Aware Scheduling
@@ -122,7 +124,7 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
                 best_free_cpu = free_cpu
                 best_node = node
 
-        return SchedulingDecision(podInfo_obj = pod, selected_nodeInfo=best_node)
+        return SchedulingDecision(podInfo_obj = pod, nodeIno_obj=best_node)
 
     def schedule_all(self, pods: List[PodInfo], candidate_nodes: List[NodeInfo]) -> List[SchedulingDecision]:
         """
@@ -132,12 +134,13 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
         3. We attempt to co-locate the top-k highest traffic pairs.
         """
         # We'll need usage info on each node as we place pods
-        node_allocations = {node.node_name: [] for node in candidate_nodes}  # track which pods are on each node
+        #each key is a nodeInfo obejct from the candidate_nodes list, and each value is an empty list.
+        node_allocations = {nodeInfo: [] for nodeInfo in candidate_nodes}  # track which pods are on each node
 
         # For quick lookups, assume each pod's CPU is small enough that we rarely conflict,
         # but you can do a real capacity check.
         # Let's build a dict to store each pod's CPU requirement for easy reference.
-        pod_cpu_req = {p.pod_name: p.cpu_req for p in pods}
+        pod_cpu_req = {p.pod_name: p.cpu_req for p in pods} # pod_name -> cpu_req
 
         # Convert traffic_pairs to a list of ((podA, podB), traffic), sorted in descending order
         sorted_traffic_pair = sorted(self.traffic_pairs.items(), key=lambda x: x[1], reverse=True)
@@ -145,8 +148,22 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
         placed_pods = set()
         
         
-        # podA, podB are the names of the pods, and traffic_val is the traffic volume between them
-        for (podA, podB), traffic_val in sorted_traffic_pair:
+        # svcA, svcB are the names of the microservice name, and traffic_val is the traffic volume between them
+        # Be careful with the pod names, they might be different from the deployment names.
+        # One microservice deployment may have multiple pods.
+        
+        # find the pod name according the microservice deployment name
+        # pod_name = get_pod_name_from_deployment(deployment_name)
+        
+        
+        for (svcA, svcB), traffic_val in sorted_traffic_pair:
+            # find the pod name according the microservice deployment name
+            # there could be multiple pods for a single deployment
+            # to simple the case, we only consider the first pod of the deployment
+            # wehen there are multiple replicas for a deployment, we need to consider all the pods
+            podA = get_pod_names_from_deployment(svcA, namespace=self.namespace)[0]
+            podB = get_pod_names_from_deployment(svcB, namespace=self.namespace)[0]
+            
             # if these pods are in the set of pods to schedule:
             if podA not in pod_cpu_req or podB not in pod_cpu_req:
                 continue
@@ -155,8 +172,8 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
             if (podA not in placed_pods) and (podB not in placed_pods):
                 best_node_for_pair = None
                 best_free_cpu = -1
-                for node in candidate_nodes:
-                    current_cpu_usage_on_node = sum(pod_cpu_req[pn] for pn in node_allocations[node.node_name])
+                for node in candidate_nodes:                    
+                    current_cpu_usage_on_node = sum(pod_cpu_req[pn] for pn in node_allocations[node]) # sum of cpu_req of all pods on the node
                     free_cpu_here = node.cpu_capacity - current_cpu_usage_on_node
                     
                     # to make sure that the two pods can be placed on the same node
@@ -169,8 +186,8 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
                         best_node_for_pair = node
 
                 if best_node_for_pair:
-                    node_allocations[best_node_for_pair.node_name].append(podA)
-                    node_allocations[best_node_for_pair.node_name].append(podB)
+                    node_allocations[best_node_for_pair].append(podA)
+                    node_allocations[best_node_for_pair].append(podB)
                     placed_pods.add(podA)
                     placed_pods.add(podB)
 
@@ -181,29 +198,41 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
             best_node = None
             best_free_cpu = -1
             for node in candidate_nodes:
-                current_cpu_usage_on_node = sum(pod_cpu_req[pn] for pn in node_allocations[node.node_name])
+                current_cpu_usage_on_node = sum(pod_cpu_req[pn] for pn in node_allocations[node])
                 free_cpu_here = node.cpu_capacity - current_cpu_usage_on_node
                 if (free_cpu_here >= pod_cpu_req[pod.pod_name]) and (free_cpu_here > best_free_cpu):
                     best_free_cpu = free_cpu_here
                     best_node = node
 
             if best_node:
-                node_allocations[best_node.node_name].append(pod.pod_name)
+                node_allocations[best_node].append(pod.pod_name)
                 placed_pods.add(pod.pod_name)
             else:
                 # fallback: place on node with largest free CPU
-                fallback = max(candidate_nodes, key=lambda nd: nd.cpu_capacity - sum(pod_cpu_req[pn] for pn in node_allocations[nd.node_name]))
-                node_allocations[fallback.node_name].append(pod.pod_name)
+                fallback = max(candidate_nodes, key=lambda nd: nd.cpu_capacity - sum(pod_cpu_req[pn] for pn in node_allocations[nd]))
+                node_allocations[fallback].append(pod.pod_name)
                 placed_pods.add(pod.pod_name)
 
         # build SchedulingDecisions
         decisions = []
-        for node_name, pod_list in node_allocations.items():
+        for node_info, pod_list in node_allocations.items():
             for p_name in pod_list:
                 # dec_microservice = _extract_deployment_from_pod(p_name)
-                decisions.append(SchedulingDecision(pod_name=p_name, selected_node=node_name))
+                
+                # find the PodInfo object with the corresponding pod_name
+                pod_obj = next((p for p in pods if p.pod_name == p_name), None)
+                # find the NodeInfo object with the corresponding node_name
+                node_obj = next((n for n in candidate_nodes if n.node_name == node_info.node_name), None)
+                # return the SchedulingDecision object
+                if pod_obj and node_obj:
+                    decisions.append(SchedulingDecision(podInfo_obj=pod_obj, nodeIno_obj=node_obj))
+                    # decisions.append(SchedulingDecision(pod_name=p_name, selected_node=node_name))
+                else:
+                    print(f"Pod {p_name} or Node {node_info.node_name} not found.")
 
-        return decisions
+        # return a list of SchedulingDecision objects [dec1, dec2, ...]
+        # each decisio object contains a PodInfo object and a NodeInfo object
+        return decisions 
 
     def on_update_metrics(self, app_namespace = "social-network") -> None:
         """
@@ -230,13 +259,20 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
         
        
     #### Helper Functions (Begin) #### 
-    def exclude_non_App_ms(self, migrations, microservice_names, exclude_deployments=['jager']):
+    def exclude_non_App_ms(self, scheduleDecision: List[SchedulingDecision], exclude_deployments: List[str]) -> List[SchedulingDecision]:
+        
         """
-        Exclude non-application microservices from the pod migration/scheduling list.
+        Exclude non-application microservices from the scehduling decision list [dec1, dec2,....].
         eg., exclude deployments like 'jaeger', 'nginx', etc.
         """
-        excluded_indices = {index for index, name in enumerate(microservice_names) if name in exclude_deployments}
-        return [(ms, initial, final) for ms, initial, final in migrations if ms not in excluded_indices]
+        
+        for dec in scheduleDecision:
+            if dec.podInfo_obj.deployment_name in exclude_deployments:
+                scheduleDecision.remove(dec)
+                
+        return scheduleDecision
+        # excluded_indices = {index for index, name in enumerate(microservice_names) if name in exclude_deployments}
+        # return [(ms, initial, final) for ms, initial, final in migrations if ms not in excluded_indices]
     
     def patch_deployment(self, deployment_name, new_node_name):
         """
@@ -311,28 +347,35 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
             (3) Apply the scheduling decisions.
             '''
             #(1) Get the current state of the system, e.g., pods, nodes, metrics (prometheus, istio, jaeger).
-            raw_nodes = gather_all_nodes()
+            raw_nodes = gather_worker_nodes() # this method excludes master nodes
             candidate_nodes = build_nodeinfo_objects(raw_nodes)
             # Gather and prepare pod data for policy1
             raw_pods_Policy1 = gather_all_pods(namespace=self.namespace)
-            pods_Policy1 = build_podinfo_objects(raw_pods_Policy1)
+            pods_Policy1 = build_podinfo_objects(raw_pods_Policy1, namespace=self.namespace)
             self.on_update_metrics(app_namespace=self.namespace)
             
             print("=== Scenario1: Call-Graph_Aware ===")
             #(2) Run the scheduling algorithm (single pod scheduling or batch pod scheduling or other customized).
             decisions_s1 = self.schedule_all(pods_Policy1, candidate_nodes) # pods managed by Policy1
+            # this decision list may contains the microservice pods that not belong to the application
+            # we need to exclude them before migration
+            # (3) Apply the scheduling decisions.
+            # Exclude non-application microservices from the pod migration/scheduling list.
+            # eg., exclude deployments like 'jaeger', 'nginx', etc.
+            decisions_s1 = self.exclude_non_App_ms(decisions_s1, exclude_deployments=['jaeger', 'nginx-thrift'])
+            
             for dec in decisions_s1:
                 # dec_microservice = _extract_deployment_from_pod(dec.pod_name)
 
-                print(f" Pod {dec.pod_name} -> schedule to Node {dec.selected_node}")
+                print(f" Pod {dec.podInfo_obj.pod_name} -> schedule to Node {dec.nodeIno_obj.node_name}")
 
             # Perform migrations concurrently using ThreadPoolExecutor
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 futures = []
                 for dec in decisions_s1:
                     
-                    dec_microservice = get_deployment_from_pod(dec.pod_name, namespace = self.namespace)
-                    future = executor.submit(self.migrate_and_wait_for_update, dec_microservice, dec.selected_node)
+                    dec_microservice = dec.podInfo_obj.deployment_name
+                    future = executor.submit(self.migrate_and_wait_for_update, dec_microservice, dec.nodeIno_obj.node_name)
                     futures.append(future)
 
                 # Wait for all futures to complete
@@ -353,4 +396,4 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
         # print("[Policy1CallGraphAware] Running the scheduler...")
         
 
-print("Policy1CallGraphAware class defined.")
+# print("Policy1CallGraphAware class defined.")

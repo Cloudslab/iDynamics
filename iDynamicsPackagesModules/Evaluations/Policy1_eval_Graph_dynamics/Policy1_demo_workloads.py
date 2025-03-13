@@ -10,7 +10,7 @@ def wrk_different_requests(req_script: str, url: str, request_interval: str):
     thread_num = 4
     connections = 100
     duration = request_interval  # e.g., "30s", "1m", "5m", "10m", "15m"
-    QPS = [60]  # can add more QPS values for different tests, e.g., [20, 50, 80, 36]
+    QPS = [50]  # can add more QPS values for different tests, e.g., [20, 50, 80, 36]
 
     # Allow req_script and url to be either a single string or a list of strings.
     if isinstance(req_script, str):
