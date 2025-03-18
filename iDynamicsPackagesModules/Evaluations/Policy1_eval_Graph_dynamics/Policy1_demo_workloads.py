@@ -4,13 +4,14 @@
 import os
 import subprocess
 from datetime import datetime
+import time
 
-def wrk_different_requests(req_script: str, url: str, request_interval: str):
+def wrk_different_requests(req_script: str, url: str, each_request_duration: str):
     # Define the parameters for different tests
     thread_num = 4
     connections = 100
-    duration = request_interval  # e.g., "30s", "1m", "5m", "10m", "15m"
-    QPS = [50]  # can add more QPS values for different tests, e.g., [20, 50, 80, 36]
+    duration = each_request_duration  # e.g., "30s", "1m", "5m", "10m", "15m"
+    QPS = [30, 10, 50, 70]  # can add more QPS values for different tests, e.g., [20, 50, 80, 36]
 
     # Allow req_script and url to be either a single string or a list of strings.
     if isinstance(req_script, str):
@@ -38,8 +39,8 @@ def wrk_different_requests(req_script: str, url: str, request_interval: str):
         f.write("")
 
     # Iterate over each URL and each script to run tests.
-    for u in urls:
-        print(f"Running wrk_different_requests test for url: {u}")
+    for i in range(len(QPS)):
+        print(f"Running wrk_different_requests test for url: {url}")
         for script in req_scripts:
             command = [
                 "/home/ubuntu/DeathStarBench/wrk2/wrk",
@@ -49,8 +50,8 @@ def wrk_different_requests(req_script: str, url: str, request_interval: str):
                 f"-d{duration}",
                 "-L",
                 "-s", script,
-                u,
-                f"-R{QPS[0]}"
+                url,
+                f"-R{QPS[i]}"
             ]
             print(f"Running command: {' '.join(command)}")
 
@@ -68,33 +69,42 @@ def wrk_different_requests(req_script: str, url: str, request_interval: str):
             print("--------------------------------------------------")
     print("All wrk_different_requests tests are done!")
 
-request_A_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/compose-post.lua"
-request_B_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-home-timeline.lua"
-request_C_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-user-timeline.lua"
+def run_workload_varing_callGraph(each_wrk2_duration: str):
+    request_B_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/compose-post.lua" # usually high response time
+    request_A_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-home-timeline.lua"
+    request_C_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-user-timeline.lua"
 
-request_mix_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/mixed-workload.lua" # default mix percentage: 60% A, 30% B, 10% C
+    request_mix_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/mixed-workload.lua" # default mix percentage: 60% A, 30% B, 10% C
 
-script_path = [
-    request_A_script_path,
-    request_B_script_path,
-    request_C_script_path,
-    request_mix_script_path
-]
+    script_path = [
+        request_A_script_path,
+        request_B_script_path,
+        request_C_script_path,
+        request_mix_script_path
+    ]
 
-url = [
-    #diffferent namespace of social-network Application
-    "http://nginx-thrift.social-network.svc.cluster.local:8080",       # in namespace of "social-network"
-    "http://nginx-thrift.social-network2.svc.cluster.local:8080",
-   "http://nginx-thrift.social-network3.svc.cluster.local:8080"
-]
+    url = [
+        #diffferent namespace of social-network Application
+        # "http://nginx-thrift.social-network-k8s.svc.cluster.local:8080" # respobsible for Policy (k8s default)
+        "http://nginx-thrift.social-network.svc.cluster.local:8080"       # in namespace of "social-network"
+    #     "http://nginx-thrift.social-network2.svc.cluster.local:8080",
+    #    "http://nginx-thrift.social-network3.svc.cluster.local:8080"
+    ]
 
-each_wrk_duration = "30s" # eg., "30s", "1m", 5m", "10m", "15m"
+    # each_wrk_duration = "3m" # eg., "30s", "1m", 5m", "10m", "15m"
 
-for j in range(0, len(url)):
-    for i in range(0, len(script_path)):
+    for j in range(0, len(url)):
+        for i in range(0, len(script_path)):
+            wrk_different_requests(script_path[i], url[j], each_request_duration = each_wrk2_duration)
 
-        wrk_different_requests(script_path[i], url[j], request_interval = each_wrk_duration)
 
+    # print the time when the test is done
+    print("wrk2 workloads tests are done at: ", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+run_workload_varing_callGraph(each_wrk2_duration='2m') 
+time.sleep(60*3) # wait for 3 mins before running the next test
+run_workload_varing_callGraph(each_wrk2_duration='2m') 
+    
 # def wrk_different_requests(req_script:str, url:str, request_interval: str):
 #     # Define the parameters, which an be changed for different tests
 #     thread_num = 4

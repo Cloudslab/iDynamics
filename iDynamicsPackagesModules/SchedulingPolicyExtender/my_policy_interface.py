@@ -19,6 +19,7 @@ class PodInfo:
         self.mem_req = mem_req
         self.sla_requirement = sla_requirement
         self.deployment_name = deployment_name  # helpful if need to patch the deployment
+        # can be extended with more attributes like cpu_limit, memory_limit, network latency, network bandwidth, etc.
 
 # class SchedulingDecision:
 #     def __init__(self, pod_name, selected_node):

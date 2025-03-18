@@ -184,6 +184,9 @@ def remove_units(data): # use this function to remove units for _network_bandwid
     Returns:
         A new dictionary or string with units removed.
     """
+    # modify to accodmdate different units , like "Mbits/sec", "Kbits/sec", "Gbits/sec", "Mbits", "Kbits", "Gbits"
+    
+    
     if isinstance(data, dict):
         # Recursively apply to each value in the dictionary.
         return {key: remove_units(value) for key, value in data.items()}
@@ -620,10 +623,11 @@ def find_prometheus_url_in_all_namespaces():
     # If no matching service was found, return None
     print("No Prometheus service found in any namespace.")
     return None
+# Example usages for find_prometheus_url_in_all_namespaces():
 # url = find_prometheus_url_in_all_namespaces()
 # if url:
 #     print(f"Prometheus URL found: {url}")
 # else:
 #     print("No Prometheus service found in any namespace.")
-results = measure_http_latency(namespace='measure-nodes')
-print(results)
+# results = measure_http_latency(namespace='measure-nodes')
+# print(results)

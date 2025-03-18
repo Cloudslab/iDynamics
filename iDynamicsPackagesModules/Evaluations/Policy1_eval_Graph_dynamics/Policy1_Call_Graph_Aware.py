@@ -178,7 +178,7 @@ class Policy1CallGraphAware(AbstractSchedulingPolicy):
                     
                     # to make sure that the two pods can be placed on the same node
                     # more strict condition can be used, e.g.,
-                    free_cpu_here = 0.5*free_cpu_here 
+                    free_cpu_here = 0.75*free_cpu_here 
 
                     # if we can place both
                     if free_cpu_here >= (pod_cpu_req[podA] + pod_cpu_req[podB]) > best_free_cpu:

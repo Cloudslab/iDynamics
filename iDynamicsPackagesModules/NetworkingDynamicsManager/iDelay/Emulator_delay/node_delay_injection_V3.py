@@ -20,21 +20,6 @@ def generate_delay_matrix(num_nodes, base_latency=5, max_additional_latency=50):
                 delay_matrix[i][j] = int(simulated_latency * congestion_factor) # change the float to integer
     return delay_matrix
 
-# Generate delay matrix for 9 worker nodes
-'''Injecting no latencies'''
-# delay_matrix = generate_delay_matrix(num_nodes=9, base_latency=0, max_additional_latency=0)
-
-# Generate delay matrix for 9 worker nodes
-delay_matrix = generate_delay_matrix(num_nodes=9, base_latency= 5, max_additional_latency= 50)
-
-
-
-
-
-# Save the delay matrix to a CSV file
-with open('delay_matrix2.csv', mode='w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerows(delay_matrix)
 
 def apply_latency_between_nodes(source_node_name, username, key_path, interface, delay_matrix, node_details):
     """Apply latency between source and destination nodes using SSH with a private key."""
@@ -99,6 +84,9 @@ def automate_latency_injection(params):
     interface = 'eth0'  # Assuming the interface name is eth0
     apply_latency_between_nodes(source_node_name, username, key_path, interface, delay_matrix, node_details)
 
+
+
+
 # Assuming correct IP addresses and no duplication in node keys
 node_details = {
     'k8s-worker-1': {'ip': '172.26.128.30', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
@@ -111,6 +99,19 @@ node_details = {
     'k8s-worker-8': {'ip': '172.26.130.82', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
     'k8s-worker-9': {'ip': '172.26.133.118', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
 }
+
+
+# Generate delay matrix for 9 worker nodes
+'''Injecting no latencies'''
+# delay_matrix = generate_delay_matrix(num_nodes=9, base_latency=0, max_additional_latency=0)
+
+# Generate delay matrix for 9 worker nodes
+delay_matrix = generate_delay_matrix(num_nodes=9, base_latency= 5, max_additional_latency= 50)
+
+# Save the delay matrix to a CSV file
+with open('delay_matrix2.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(delay_matrix)
 
 # Apply latency injection using the generated delay matrix with multiprocessing
 params_list = [(source_node, delay_matrix, node_details) for source_node in node_details.keys()]

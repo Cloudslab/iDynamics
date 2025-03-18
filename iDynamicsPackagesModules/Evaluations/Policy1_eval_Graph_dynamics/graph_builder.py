@@ -37,6 +37,7 @@ def get_ready_deployments(namespace):
     return ready_deployments
 
 def transmitted_req_calculator(workload_src, workload_dst, timerange, step_interval, app_namespace):
+    # real-time traffic load builder between UM-DM paris, including the corresponding multiple ms replicas
     """
     Queries Prometheus for istio_tcp_sent_bytes_total and istio_tcp_received_bytes_total
     from workload_src -> workload_dst, calculates an average traffic rate (in bytes)

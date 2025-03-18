@@ -7,7 +7,7 @@ timestamp = datetime.now().strftime("%Y_%b_%d_%H%M")  # Example: 2024_Oct_20_193
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(processName)s] %(message)s',
-    filename=f'/home/ubuntu/iDynamics/Evaluations/clear_qdisc_on_nodes/{timestamp}_clear_qdisc_delays.log'
+    filename=f'/home/ubuntu/iDynamics/iDynamicsPackagesModules/NetworkingDynamicsManager/clear_qdisc_on_nodes/{timestamp}_clear_qdisc_delays.log'
 )
 
 
