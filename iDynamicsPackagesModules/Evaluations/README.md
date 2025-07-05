@@ -20,7 +20,8 @@ $ helm install RELEASE_NAME HELM_CHART_REPO_PATH \
 
 For example, navigate to the path with 'socialnetwork' app helm chart.
 '''
-ubuntu@k8s-master:~/DeathStarBench/socialNetwork/helm-chart$ helm install social-net1 socialnetwork/ \
+ubuntu@k8s-master:~/DeathStarBench/socialNetwork/helm-chart$ 
+helm install social-net1 socialnetwork/ \
 --namespace social-network \
 --set global.resources.requests.memory=64Mi \
 --set global.resources.requests.cpu=150m \
@@ -30,6 +31,7 @@ ubuntu@k8s-master:~/DeathStarBench/socialNetwork/helm-chart$ helm install social
 --set compose-post-service.container.resources.requests.cpu=300m \
 --set compose-post-service.container.resources.limits.memory=256Mi \
 --set compose-post-service.container.resources.limits.cpu=500m
+
 NAME: social-net1
 LAST DEPLOYED: Fri Jul  4 13:43:54 2025
 NAMESPACE: social-network
