@@ -4,8 +4,8 @@ Add **or** remove the `trial/exclude=lab:NoSchedule` taint on k8s-worker-6 … k
 
 Usage
 -----
-python taint_toggle.py add      # add / overwrite taint
-python taint_toggle.py remove   # remove taint
+python taint_nodes.py add      # add / overwrite taint
+python taint_nodes.py remove   # remove taint
 """
 
 import subprocess, sys

@@ -106,7 +106,8 @@ def main():
         'k8s-worker-11': {'ip': '172.26.128.34', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
         'k8s-worker-12': {'ip': '172.26.132.228', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
         'k8s-worker-13': {'ip': '172.26.133.157', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-        'k8s-worker-14': {'ip': '172.26.128.40', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
+        'k8s-worker-14': {'ip': '172.26.128.40', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+        'k8s-worker-15': {'ip': '172.26.128.40', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
     }
 
     thread_num = 8

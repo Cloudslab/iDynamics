@@ -102,8 +102,8 @@ def run_workload_varing_callGraph(each_wrk2_duration: str):
     print("wrk2 workloads tests are done at: ", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 run_workload_varing_callGraph(each_wrk2_duration='2m') 
-time.sleep(60*3) # wait for 3 mins before running the next test
-run_workload_varing_callGraph(each_wrk2_duration='2m') 
+# time.sleep(60*3) # wait for 3 mins before running the next test
+# run_workload_varing_callGraph(each_wrk2_duration='2m') 
     
 # def wrk_different_requests(req_script:str, url:str, request_interval: str):
 #     # Define the parameters, which an be changed for different tests

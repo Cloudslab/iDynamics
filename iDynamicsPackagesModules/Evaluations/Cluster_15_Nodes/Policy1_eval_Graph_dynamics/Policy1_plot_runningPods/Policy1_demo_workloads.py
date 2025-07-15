@@ -1,0 +1,164 @@
+# using wrk tool to run the four differnt test workloads (request A, request B, request C, request_mix ABC) for Social Network Application in name space of "social-network"
+# this test is used to observe the different performace of the Social Network Application under different workloads(requests). Each type of request is running 5 mins
+
+import os
+import subprocess
+from datetime import datetime
+import time
+
+def wrk_different_requests(req_script: str, url: str, each_request_duration: str):
+    # Define the parameters for different tests
+    thread_num = 4
+    connections = 100
+    duration = each_request_duration  # e.g., "30s", "1m", "5m", "10m", "15m"
+    QPS = [30, 10, 50, 70]  # can add more QPS values for different tests, e.g., [20, 50, 80, 36]
+
+    # Allow req_script and url to be either a single string or a list of strings.
+    if isinstance(req_script, str):
+        req_scripts = [req_script]
+    else:
+        req_scripts = req_script
+
+    if isinstance(url, str):
+        urls = [url]
+    else:
+        urls = url
+
+    # Define the output directory path and expand the tilde to the home directory.
+    output_dir = os.path.expanduser("/home/ubuntu/iDynamics/iDynamicsPackagesModules/Evaluations/Cluster_15_Nodes/Policy1_eval_Graph_dynamics/Policy1_demo_data/")
+    # Create the directory if it doesn't exist.
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Generate the current timestamp for the output filename.
+    timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M')
+    filename = f"output_result_{timestamp}.txt"
+    output_file = os.path.join(output_dir, filename)
+
+    # xxxx Ensure the output file is empty at the start.
+    with open(output_file, 'w') as f:
+        f.write("")
+
+    # Iterate over each URL and each script to run tests.
+    for i in range(len(QPS)):
+        print(f"Running wrk_different_requests test for url: {url}")
+        for script in req_scripts:
+            command = [
+                "/home/ubuntu/DeathStarBench/wrk2/wrk",
+                "-D", "exp",
+                f"-t{thread_num}",
+                f"-c{connections}",
+                f"-d{duration}",
+                "-L",
+                "-s", script,
+                url,
+                f"-R{QPS[i]}"
+            ]
+            print(f"Running command: {' '.join(command)}")
+
+            # Execute the command and capture the output.
+            process = subprocess.Popen(command, stdout=subprocess.PIPE)
+            output, error = process.communicate()
+            output = output.decode("utf-8")
+            print(output)
+            
+            # Append the output to the output file.
+            with open(output_file, 'a') as f:
+                f.write(output)
+                f.write("\n\n")
+            print(f"Finished running command: {' '.join(command)}")
+            print("--------------------------------------------------")
+    print("All wrk_different_requests tests are done!")
+
+def run_workload_varing_callGraph(each_wrk2_duration: str):
+    request_B_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/compose-post.lua" # usually high response time
+    request_A_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-home-timeline.lua"
+    request_C_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/read-user-timeline.lua"
+
+    request_mix_script_path = "/home/ubuntu/DeathStarBench/socialNetwork/wrk2/scripts/social-network/mixed-workload.lua" # default mix percentage: 60% A, 30% B, 10% C
+
+    script_path = [
+        request_A_script_path,
+        request_B_script_path,
+        request_C_script_path,
+        request_mix_script_path
+    ]
+
+    url = [
+        #diffferent namespace of social-network Application
+        # "http://nginx-thrift.social-network-k8s.svc.cluster.local:8080" # respobsible for Policy (k8s default)
+        "http://nginx-thrift.social-network.svc.cluster.local:8080"       # in namespace of "social-network"
+    #     "http://nginx-thrift.social-network2.svc.cluster.local:8080",
+    #    "http://nginx-thrift.social-network3.svc.cluster.local:8080"
+    ]
+
+    # each_wrk_duration = "3m" # eg., "30s", "1m", 5m", "10m", "15m"
+
+    for j in range(0, len(url)):
+        for i in range(0, len(script_path)):
+            wrk_different_requests(script_path[i], url[j], each_request_duration = each_wrk2_duration)
+
+
+    # print the time when the test is done
+    print("wrk2 workloads tests are done at: ", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+run_workload_varing_callGraph(each_wrk2_duration='2m') 
+# time.sleep(60*3) # wait for 3 mins before running the next test
+# run_workload_varing_callGraph(each_wrk2_duration='2m') 
+    
+# def wrk_different_requests(req_script:str, url:str, request_interval: str):
+#     # Define the parameters, which an be changed for different tests
+#     thread_num = 4
+#     connections = 100
+#     duration = request_interval # eg., "30s", "1m", 5m", "10m", "15m"
+#     QPS = [20] # can adde more QPS for different tests, like [20, 50, 80, 36]
+
+#     script_path = req_script
+#     url = url
+
+#     # Define the output file path in the current directory and file name with the format of current time (Year_MONTH_Day_Hour_Minute)
+
+#     # Generate the current time as a string in the format Year_MONTH_Day_Hour_Minute
+#     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M')
+#     # Construct your desired filename, appending the timestamp
+#     filename = f"output_result_{timestamp}.txt"
+#     # Combine the current working directory with your new filename
+#     output_file = os.path.join("/home/ubuntu/iDynamics/iDynamicsPackagesModules/Evaluations/Policy1_eval_Graph_dynamics/Policy1_demo_data/", filename)
+
+#     # Ensure the output file is empty at the start
+#     with open(output_file, 'w') as f:
+#         f.write("")
+
+
+#     for i in range(len(url)):
+#         print(f"Running wrk_different_requests test for url: {url[i]}")
+#         for script in script_path:
+#             command = [
+#                 "/home/ubuntu/DeathStarBench/wrk2/wrk",
+#                 "-D", "exp",
+#                 f"-t{thread_num}",
+#                 f"-c{connections}",
+#                 f"-d{duration}",
+#                 "-L",
+#                 "-s", script,
+#                 url[i],
+#                 f"-R{QPS[0]}"
+#             ]
+#             print(f"Running command: {' '.join(command)}")
+
+#             # make sure each loop runs one command, after finish current loop, run the next command
+#             # run the command
+#             process = subprocess.Popen(command, stdout=subprocess.PIPE)
+#             output, error = process.communicate()
+#             output = output.decode("utf-8")
+#             print(output)
+#             # Write the output to the output file
+#             with open(output_file, 'a') as f:
+#                 f.write(output)
+#                 f.write("\n\n")
+#             print(f"Finished running command: {' '.join(command)}")
+#             print("--------------------------------------------------")
+#     print("All wrk_different_requests tests are done!")
+
+
+
+
