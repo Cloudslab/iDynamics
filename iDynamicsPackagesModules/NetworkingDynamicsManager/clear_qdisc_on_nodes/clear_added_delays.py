@@ -49,6 +49,18 @@ def automate_latency_clearing(params):
     clear_qdisc_delay_rules(source_node_name, username, key_path, interface, node_details)
 
 # Node details with IPs and SSH credentials for each worker node
+# node_details = {
+#     'k8s-worker-1': {'ip': '172.26.128.30', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-2': {'ip': '172.26.132.91', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-3': {'ip': '172.26.133.31', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-4': {'ip': '172.26.132.241', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-5': {'ip': '172.26.132.142', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-6': {'ip': '172.26.133.55', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-7': {'ip': '172.26.130.22', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-8': {'ip': '172.26.130.82', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+#     'k8s-worker-9': {'ip': '172.26.133.118', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
+# }
+
 node_details = {
     'k8s-worker-1': {'ip': '172.26.128.30', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
     'k8s-worker-2': {'ip': '172.26.132.91', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
@@ -58,7 +70,13 @@ node_details = {
     'k8s-worker-6': {'ip': '172.26.133.55', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
     'k8s-worker-7': {'ip': '172.26.130.22', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
     'k8s-worker-8': {'ip': '172.26.130.82', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-    'k8s-worker-9': {'ip': '172.26.133.118', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
+    'k8s-worker-9': {'ip': '172.26.133.118', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-10': {'ip': '172.26.134.133', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-11': {'ip': '172.26.128.34', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-12': {'ip': '172.26.132.228', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-13': {'ip': '172.26.133.157', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-14': {'ip': '172.26.128.40', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
+    'k8s-worker-15': {'ip': '172.26.131.224', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
 }
 
 # Prepare parameters for parallel execution (one entry per node)
