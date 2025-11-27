@@ -1,4 +1,4 @@
-# iDynamics
+# iDynamics: A Configurable Emulation Framework for evaluating Microservice Scheduling Policies under Controllable Cloud–Edge Dynamics
 
 iDynamics is a configurable emulation framework for evaluating microservice scheduling policies on Kubernetes-based cloud–edge clusters under *controllable dynamics* (call-graph, traffic, and network conditions). 
 
@@ -32,7 +32,7 @@ iDynamics is designed to:
 
 - **Run real microservices** on a Kubernetes cluster (e.g., DeathStarBench Social Network) instead of pure simulation.  
 - **Observe dynamic call-graphs and traffic** via a service mesh (Istio) and build weighted dependency graphs between upstream–downstream microservice pairs.
-- **Emulate heterogeneous cross-node latency and bandwidth** using Linux traffic control (classful `qdisc` + `u32` filters) while preserving non-experimental traffic. 
+- **Emulate heterogeneous cross-node latency and bandwidth** using Linux traffic control prmitives (classful `qdisc` + `u32` filters) while preserving non-experimental traffic. 
 - **Measure injected dynamics** with lightweight, distributed agents (Kubernetes DaemonSets) for delay and bandwidth.
 - **Plug in arbitrary scheduling policies** through an abstract policy interface and a utility module that exposes nodes, pods, and metrics in a scheduler-friendly way. 
 - **Evaluate policies under repeatable scenarios**, including dynamic workloads, changing call-graphs, and evolving network conditions.
@@ -41,7 +41,7 @@ iDynamics is designed to:
 
 ## Architecture at a glance
 
-At a high level (see Figure 4 in the TMC paper for the full diagram), iDynamics consists of three main components: 
+At a high level, iDynamics consists of three main components: 
 
 1. **Graph Dynamics Analyzer**
    - UM–DM Traffic Profiler
