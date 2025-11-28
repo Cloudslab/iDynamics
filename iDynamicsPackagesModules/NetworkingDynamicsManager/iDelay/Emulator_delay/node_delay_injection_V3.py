@@ -84,21 +84,28 @@ def automate_latency_injection(params):
     interface = 'eth0'  # Assuming the interface name is eth0
     apply_latency_between_nodes(source_node_name, username, key_path, interface, delay_matrix, node_details)
 
+# The above inejction is singel direction;
+# when want ti calculate the bidirectional delay between two nodes,
+# we need to sum the delays in both directions
+def compute_bidirectional_delay_sums(delay_matrix):
+    """
+    Given an N x N directed delay_matrix where delay_matrix[i][j] is the
+    injected delay from node i to node j, compute a symmetric matrix where
+    each entry [i][j] is delay_matrix[i][j] + delay_matrix[j][i].
+    """
+    num_nodes = len(delay_matrix)
+    bidir = [[0 for _ in range(num_nodes)] for _ in range(num_nodes)]
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            if i == j:
+                bidir[i][j] = 0   # No self-delay
+            else:
+                bidir[i][j] = delay_matrix[i][j] + delay_matrix[j][i]
+    return bidir
 
 
 
 # Assuming correct IP addresses and no duplication in node keys
-# node_details = {
-#     'k8s-worker-1': {'ip': '172.26.128.30', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-2': {'ip': '172.26.132.91', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-3': {'ip': '172.26.133.31', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-4': {'ip': '172.26.132.241', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-5': {'ip': '172.26.132.142', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-6': {'ip': '172.26.133.55', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-7': {'ip': '172.26.130.22', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-8': {'ip': '172.26.130.82', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
-#     'k8s-worker-9': {'ip': '172.26.133.118', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'}
-# }
 node_details = {
     'k8s-worker-1': {'ip': '172.26.128.30', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
     'k8s-worker-2': {'ip': '172.26.132.91', 'username': 'ubuntu', 'key_path': '/home/ubuntu/.ssh/id_rsa'},
@@ -118,12 +125,26 @@ node_details = {
 # delay_matrix = generate_delay_matrix(num_nodes=9, base_latency=0, max_additional_latency=0)
 
 # Generate delay matrix for 9 worker nodes
-delay_matrix = generate_delay_matrix(num_nodes=9, base_latency= 5, max_additional_latency= 50)
+delay_matrix = generate_delay_matrix(
+    num_nodes=len(node_details), 
+    base_latency= 5, 
+    max_additional_latency= 50)
 
-# Save the delay matrix to a CSV file
-with open('delay_matrix2.csv', mode='w', newline='') as file:
+
+# Save the directed delay matrix (i -> j) to CSV
+with open('delay_matrix_directed.csv', mode='w', newline='') as file:
     writer = csv.writer(file)
     writer.writerows(delay_matrix)
+
+# Compute and save the BIdirectional (i <-> j) summed delays
+bidirectional_delay_matrix = compute_bidirectional_delay_sums(delay_matrix)
+
+with open('delay_matrix_bidirectional.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerows(bidirectional_delay_matrix)
+    
+    
+    
 
 # Apply latency injection using the generated delay matrix with multiprocessing
 params_list = [(source_node, delay_matrix, node_details) for source_node in node_details.keys()]
