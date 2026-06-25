@@ -12,8 +12,7 @@ from iDynamicsPackagesModules.NetworkingDynamicsManager.node_bandwidth_measure_P
 
 class NodeInfo:
     """
-    Example domain-specific structure for node information.
-    Expand or modify as needed for your scheduling logic.
+    Node scheduling state consumed by policy implementations.
     """
     def __init__(self, node_name: str,
                  cpu_capacity: float,
@@ -27,13 +26,13 @@ class NodeInfo:
         self.mem_capacity = mem_capacity
         self.current_cpu_usage = current_cpu_usage
         self.current_mem_usage = current_mem_usage
-        # Optional dictionaries or placeholders for additional data
+        # Per-node network measurements keyed by destination node.
         self.network_latency = network_latency if network_latency else {}
         self.network_bandwidth = network_bandwidth if network_bandwidth else {}
 
 class PodInfo:
     """
-    Example domain-specific structure for pod information.
+    Pod scheduling state consumed by policy implementations.
     """
     def __init__(self, pod_name: str,
                  cpu_req: float,
@@ -52,8 +51,7 @@ def gather_all_nodes() -> List[client.V1Node]:
     Returns:
         A list of raw Kubernetes Node objects.
     """
-    # Load config only once at your program entrypoint if possible,
-    # or do in-cluster config if running inside the cluster:
+    # Prefer loading Kubernetes configuration once at process startup.
     try:
         config.load_incluster_config()
     except:
@@ -101,8 +99,7 @@ def gather_all_pods(namespace: str = None) -> List[client.V1Pod]:
 
 def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
     """
-    Convert raw Node objects to NodeInfo. You can adapt resource usage logic
-    to your environment (e.g. using Metrics API, custom usage collectors, etc.)
+    Convert raw Node objects to NodeInfo records.
 
     Args:
         raw_nodes: List of Kubernetes node objects.
@@ -112,10 +109,6 @@ def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
     """
     nodeinfo_list = []
 
-    # If you have a metrics server running, you could fetch live usage.
-    # For simplicity, let's just read capacities from node.status.capacity
-    # and set usage to 0 or some approximate value.
-    # If you want to incorporate usage from metrics, see note below.
     for node in raw_nodes:
         node_name = node.metadata.name
         # print(f"node_name: {node_name}")
@@ -128,31 +121,24 @@ def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
         else:
             cpu_capacity = float(cpu_capacity_str)
 
-        # Memory capacity might be Ki, Mi, Gi, etc. Let's assume Ki => convert to Mi
+        # Kubernetes memory capacity may be reported as Ki, Mi, Gi, or bytes.
         mem_capacity_str = node.status.capacity.get('memory', '0')
         mem_capacity = _convert_memory_to_mebibytes(mem_capacity_str)
-
-        # Usage can be fetched from metrics if desired:
           
-        # PROMETHEUS Service URL and port; 
-        # Option 1: Find with command "kuebctl get svc -A"; prom_url = "http://<cluster-ip>:<port>" = "http://10.105.116.175:9090"
-        # OPtion 2: use the provided following function " prom_url = find_prometheus_url_in_all_namespaces() "
+        # Prometheus URL can be discovered with find_prometheus_url_in_all_namespaces().
         current_cpu_usage, current_mem_usage = fetch_live_node_usage_prometheus(node_name=node_name, prom_url="http://10.105.116.175:9090") 
-        # for easier calculation, make the cpu_usage and mem_usage as float with two decimal points
+        # Round usage up to two decimal places for scheduling calculations.
         current_cpu_usage = math.ceil(current_cpu_usage * 100) / 100
         current_mem_usage = math.ceil(current_mem_usage * 100) / 100
         
-        # Get the network latency and bandwidth
-        # (1) On-time method, which is more real-time but a bit time-consuming (a few minitues) for measuing Bnadiwth and then building NodeInfo obejects slowly.
+        # Live measurements are more current but increase NodeInfo construction time.
         # latency_results = measure_http_latency(namespace='measure-nodes')
-        # bandwidth_results = measure_bandwidth(namespace='measure-nodes-bd', max_concurrent_tasks=3, test_duration=5) # concurrency can be changed as needed
+        # bandwidth_results = measure_bandwidth(namespace='measure-nodes-bd', max_concurrent_tasks=3, test_duration=5)
         # _network_latency_ = get_latency_to_other_nodes(latency_results, node_name)
         # _network_bandwidth_ = get_bandwidth_to_other_nodes(bandwidth_results, node_name)
         
-        # (2) Off-time method, which is less real-time but much faster for buidling NodeInfo obejects
-        # the latency and bandwidyh data can be updated from periodcally running the above On-time methods,
-        # or the update data when detecting major changes in network conditions 
-        # (e.g., via metrics, alerts, or cluster events), trigger a new measurement pass 
+        # Cached measurements are faster and can be refreshed by periodic live probes
+        # or by cluster events that indicate a network-condition change.
         latency_dict_path= "/home/ubuntu/iDynamics/iDynamicsPackagesModules/NetworkingDynamicsManager/networking_measured_data/latency_dict.txt"
         bandwidth_dict_path= "/home/ubuntu/iDynamics/iDynamicsPackagesModules/NetworkingDynamicsManager/networking_measured_data/bandwidth_dict.txt"
         _network_latency_ = get_networking_conditions_for_node(node_name, latency_dict_path)
@@ -166,8 +152,8 @@ def build_nodeinfo_objects(raw_nodes: List[client.V1Node]) -> List[NodeInfo]:
             mem_capacity=mem_capacity,
             current_cpu_usage=current_cpu_usage,
             current_mem_usage=current_mem_usage,
-            network_latency=_network_latency_,     # Populate later if you have latency data
-            network_bandwidth=_network_bandwidth_    # Populate later if you have bandwidth data
+            network_latency=_network_latency_,
+            network_bandwidth=_network_bandwidth_
         )
         nodeinfo_list.append(node_info)
 
@@ -215,7 +201,7 @@ def build_podinfo_objects(raw_pods: List[client.V1Pod], namespace: str) -> List[
     for pod in raw_pods:
         pod_name = pod.metadata.name
 
-        # For simplicity, sum up CPU/memory requests across all containers in the Pod
+        # Aggregate CPU and memory requests across all containers in the Pod.
         total_cpu_req = 0.0
         total_mem_req = 0.0
 
@@ -230,14 +216,11 @@ def build_podinfo_objects(raw_pods: List[client.V1Pod], namespace: str) -> List[
                     mem_req_str = requests.get('memory', '0')
                     total_mem_req += _convert_memory_to_mebibytes(mem_req_str)
 
-        # Suppose we store the Deployment name for reference:
         pod_namespace = pod.metadata.namespace
         deployment_name = get_deployment_from_pod(pod_name, pod_namespace)
 
-        # If your system has an SLA or desired latency requirement:
-        # You could store it in an annotation, or pass it in from somewhere else.
-        # We'll just use a placeholder of 200 ms for now.
-        sla_requirement = 200.0 # can be changed as needed
+        # Default SLA in milliseconds; policies may override this from annotations.
+        sla_requirement = 200.0
 
         pod_info = PodInfo(
             pod_name=pod_name,
@@ -255,39 +238,36 @@ from prometheus_api_client import PrometheusConnect
 from datetime import datetime, timedelta
 import math
 
-# the 'live' is the recent last 5 minutes usage data. 'live' is not the real-time usage data here.
-# 5 min is configured and can be changed in the following function
+# "Live" usage is computed over a recent 5-minute Prometheus window.
 def fetch_live_node_usage_prometheus(node_name: str,
-                                     prom_url: str = "http://localhost:9090") -> Tuple[float, float]: # NEED to specify the node name and prometheus urls
+                                     prom_url: str = "http://localhost:9090") -> Tuple[float, float]:
     """
     Fetch approximate CPU usage (in cores) and memory usage (in MiB) for a node
     from Prometheus using typical node_exporter metrics. 
     """
     prom = PrometheusConnect(url=prom_url, disable_ssl=True)
 
-    # 1. Build a time range for the query. We query the rate at "now"
+    # Query a recent time range ending at the current wall-clock time.
     end_time = datetime.now()
     start_time = end_time - timedelta(minutes=5)  # 5-min window
 
     # 2. CPU Usage Query
     #
-    # Here’s a typical pattern:
+    # Common percentage-based pattern:
     #   100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle",instance="<node>:..."}[5m])))
-    # if using IP addresses, you can use "instance=~'<Node_ip>:.*'"
-    # if using node names, you can use "node=~'<node_host_name>:.*'"
-    # That yields a percentage of CPU usage. We'll convert it to fractional cores 
-    # by multiplying by the node’s CPU count or by using a different formula.
+    # IP-based deployments commonly use instance=~'<node_ip>:.*'.
+    # Node-name deployments commonly use node=~'<node_host_name>:.*'.
     #
     # Alternatively, if you want total CPU usage in cores:
     #   sum by (instance) (rate(node_cpu_seconds_total{mode!="idle",instance="<node>"}[5m]))
     #
-    # For demonstration, let's do the sum of all non-idle cores usage:
+    # Use the sum of all non-idle core usage for this node.
     cpu_query = f'''
       sum by (instance) (
         rate(node_cpu_seconds_total{{mode!="idle", node=~"{node_name}.*"}}[5m])
       )
     '''
-    # The instance label often looks like "ip:9100" or "node_name:9100". Adjust as needed.
+    # The instance label often looks like "ip:9100" or "node_name:9100".
 
     cpu_data = prom.custom_query_range(
         query=cpu_query,
@@ -298,17 +278,15 @@ def fetch_live_node_usage_prometheus(node_name: str,
 
     cpu_usage_cores = 0.0
     if cpu_data:
-        # Usually, you'll get a list of results. Let's take the last value from the first result.
         values = cpu_data[0]['values']  # array of [timestamp, value]
         if values:
-            # take the most recent data point
             _, val_str = values[-1]
             cpu_usage_cores = float(val_str)  # e.g. "2.3" -> 2.3 cores
 
     # 3. Memory Usage Query
     #
     # A typical node_exporter metric is node_memory_MemTotal_bytes and node_memory_MemAvailable_bytes.
-    # You can compute used = total - available. We'll do that for the node, then convert to MiB.
+    # Compute used = total - available for the node, then convert to MiB.
     mem_query = f'''
       node_memory_MemTotal_bytes{{node=~"{node_name}.*"}}
       -
@@ -412,8 +390,7 @@ def get_bandwidth_to_other_nodes(bandwidth_results: dict, source_node_name: str)
     # Fetch the dictionary of bandwidths from the source node to each destination.
     source_bandwidths = bandwidth_results.get(source_node_name, {})
 
-    # Return that dictionary unchanged. If you also want to exclude self-references,
-    # you can filter them out (shown here for completeness):
+    # Exclude self-references from the returned bandwidth map.
     return {
         dst_node: bw_value
         for dst_node, bw_value in source_bandwidths.items()
@@ -421,8 +398,7 @@ def get_bandwidth_to_other_nodes(bandwidth_results: dict, source_node_name: str)
     }
 
 # Example usage:
-# Suppose `bandwidth_results` is the dictionary you provided,
-# and we want to get all outgoing bandwidths from "k8s-worker-3".
+# Get all outgoing bandwidths from "k8s-worker-3".
 #
 #   result = get_bandwidth_to_other_nodes(bandwidth_results, "k8s-worker-3")
 #   print(result)
@@ -536,7 +512,6 @@ def _convert_memory_to_mebibytes(mem_str: str) -> float:
     # A rough approach is to parse out the numeric portion and scale accordingly.
     # For example: '512Mi' => 512, '1Gi' => 1024, '1000Ki' => 1000 / 1024 => ~0.98Mi.
     # or '2G' => might parse as 2048
-    # We'll keep it simple:
     #   1 Ki = 1/1024 Mi
     #   1 Mi = 1 Mi
     #   1 Gi = 1024 Mi
@@ -571,8 +546,8 @@ def _convert_memory_to_mebibytes(mem_str: str) -> float:
         return val * 1024.0 * 1024.0
     elif 'k' in unit_part:  # plain 'k' might appear
         return val / 1024.0
-    elif 'm' in unit_part:  # plain 'm'? Rare for memory, but let's just do a pass
-        return val  # or interpret differently if you want
+    elif 'm' in unit_part:
+        return val
     elif 'g' in unit_part:
         return val * 1024.0
     # If no recognized suffix, assume it's bytes => convert to Mi
@@ -588,8 +563,7 @@ def find_prometheus_url_in_all_namespaces():
     Returns a single URL string like 'http://<cluster-ip>:<port>' for the first match,
     or None if not found.
     """
-    # Load kube config (for local) or in-cluster config (if running in a Pod).
-    # Typically, you'd do one or the other depending on your environment.
+    # Load local kubeconfig first, then fall back to in-cluster configuration.
     try:
         config.load_kube_config()  # Use local ~/.kube/config
     except:

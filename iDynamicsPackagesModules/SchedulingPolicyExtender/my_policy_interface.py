@@ -81,10 +81,10 @@ class AbstractSchedulingPolicy(ABC):
         """
         Respond to new telemetry. 
         Parameters:
-        - nodes: List of NodeInfo objects, which can be used for node-realted metrics
+        - nodes: List of NodeInfo objects for node-related metrics.
         - app_namespace: The namespace of the application, which can be used for application-specific metrics.
         
-        For instance, if the user triggers a “re-scheduling event,” you can gather new usage data here.
+        Implementations may refresh usage data when a rescheduling event is triggered.
         
         Called periodically if metrics are updated at runtime.
         """
@@ -94,7 +94,7 @@ class AbstractSchedulingPolicy(ABC):
     def run(self):
         """
         This scheduler class is designed to be runtime scheduler, which means it will be continuously running
-        to monoitor the deployed application in the given 'namespace' and take scheduling decisions once certain
+        to monitor the deployed application in the given 'namespace' and take scheduling decisions once certain
         defined SLA (like QoS average response time) is violated to trigger scheduling decisions.
         Main function to run the scheduler.
         """

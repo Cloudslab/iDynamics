@@ -18,7 +18,7 @@ Common useful files:
 The cleaned copy removes files that are not useful for paper readers:
 
 - `paper_claims.md`
-- `codex_model.txt`
+- local tool metadata files
 - `git_sha.txt`
 - `git_status.txt`
 - `commands.log`

@@ -11,12 +11,11 @@ The repository hosts the research prototype used in our iDynamics papers and pro
 ## Paper and cleaned artifacts
 
 - Manuscript: `IEEE_TSC_iDynamics_Revision.pdf`
-- Cleaned experiment references: `experiments/README.md`
-- Per-run artifacts: `experiments/runs/README.md`
+- Cleaned run artifacts: `experiments/runs/README.md`
 - User-facing benchmark packages: `benchmarks/`
 
 The experiment run directories in this repository are intentionally cleaned for
-paper readers. Debug logs, local Git status, command logs, Codex metadata, and
+paper readers. Debug logs, local Git status, command logs, local tool metadata, and
 deprecated claim note files are not included here; the run folders keep
 configuration, raw evidence, processed metrics, summaries, and figures when
 present.
@@ -47,7 +46,7 @@ iDynamics is designed to:
 
 - **Run real microservices** on a Kubernetes cluster (e.g., DeathStarBench Social Network) instead of pure simulation.  
 - **Observe dynamic call-graphs and traffic** via a service mesh (Istio) and build weighted dependency graphs between upstream–downstream microservice pairs.
-- **Emulate heterogeneous cross-node latency and bandwidth** using Linux traffic control prmitives (classful `qdisc` + `u32` filters) while preserving non-experimental traffic. 
+- **Emulate heterogeneous cross-node latency and bandwidth** using Linux traffic control primitives (classful `qdisc` + `u32` filters) while preserving non-experimental traffic. 
 - **Measure injected dynamics** with lightweight, distributed agents (Kubernetes DaemonSets) for delay and bandwidth.
 - **Plug in arbitrary scheduling policies** through an abstract policy interface and a utility module that exposes nodes, pods, and metrics in a scheduler-friendly way. 
 - **Evaluate policies under repeatable scenarios**, including dynamic workloads, changing call-graphs, and evolving network conditions.
