@@ -34,8 +34,3 @@ use the older Online Boutique external smoke runner.
 - `scripts/cleanup.sh`: delete the benchmark namespace.
 - `scripts/reproduce.sh`: preferred ledger-backed experiment entry point.
 
-## Claim Boundary
-
-Use only run-ledger-backed results for paper claims. Manual deploy/smoke/load
-scripts are operational helpers and do not create sufficient evidence by
-themselves.

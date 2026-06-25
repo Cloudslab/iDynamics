@@ -23,8 +23,3 @@ records, GDA overhead samples, processed summaries, and claim boundaries.
 - `scripts/cleanup.sh`: uninstall the Helm release and delete the namespace.
 - `scripts/reproduce.sh`: preferred ledger-backed experiment entry point.
 
-## Claim Boundary
-
-Use only complete `experiments/runs` ledgers with status `measured` for paper
-overhead rows. A `deploy_blocked`, `load_blocked`, or `telemetry_blocked` ledger
-documents operational feasibility only.

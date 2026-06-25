@@ -14,8 +14,3 @@ benchmarks/sock-shop/scripts/cleanup.sh
 
 Expected local checkout:
 `/home/ubuntu/idyn-external/sock-shop`.
-
-## Claim Boundary
-
-Use only as compatibility evidence unless a complete stable run ledger is
-produced and the paper clearly states the deprecated upstream status.
