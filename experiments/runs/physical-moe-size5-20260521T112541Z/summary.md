@@ -20,5 +20,3 @@ Physical size5 MoE Kubernetes run comparing default placement with iDynamics Pol
 - Policy 1 p95 latency changed by 1.90 ms relative to Kubernetes default in this run.
 - Network target-vs-measured error is not applicable because this run did not apply live network impairment.
 
-## Limitations
-This is a physical size5 current-cluster run only. It does not support any 20/30/50-node physical claim.

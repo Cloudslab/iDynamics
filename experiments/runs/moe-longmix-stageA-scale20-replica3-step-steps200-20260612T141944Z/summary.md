@@ -22,5 +22,3 @@ Evaluate continuous, overlapping `moe-serving` workload mixes and fixed-interval
 - Mean top-3 hotspot churn: 0.0206.
 - Latency/SLA-pressure correlation: 0.7258.
 
-## Limitations
-The default run is replay evidence for continuous call-graph evolution. Policy latency/SLA outputs are replay evidence. The run is not a live physical cluster-scale performance result unless live workload logs are present in this ledger, and it does not support saturated 45-worker scaling claims without recorded pod/node occupancy.

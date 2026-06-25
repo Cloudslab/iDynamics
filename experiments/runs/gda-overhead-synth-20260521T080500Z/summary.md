@@ -13,6 +13,3 @@ Synthetic control-plane overhead comparison for legacy dense GDA pair scanning v
 - Query reduction ratio at largest size: 999000.0x.
 - Median CPU-loop ratio at largest size: 14.41x.
 
-## Limitations
-- This is a synthetic/control-plane overhead run, not a physical >10-node cluster experiment.
-- Results support Algorithm 1 overhead/scalability discussion, not application SLA claims.

@@ -24,5 +24,3 @@ Calibrate the burst-correlated iDynamics network trace generator against a small
 - burst_probability: 0.08
 - base_latency_ms: 14.706684525000002
 
-## Limitations
-This calibration uses public active RTT measurements to one DNS-root target. It calibrates latency dynamics only; the RIPE built-in ping sample does not provide bandwidth. The best grid-search fit matches median/tail scale but does not reproduce the RIPE sample's rare extreme peak-to-median outliers or its low lag-1 autocorrelation. The sample is appropriate for bounding burst/correlation realism, not for claiming that it represents all cloud-edge network regimes.

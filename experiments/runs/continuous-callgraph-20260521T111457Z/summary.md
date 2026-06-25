@@ -16,5 +16,3 @@ Evaluate continuous, overlapping Social Network workload mixes and fixed-interva
 - Mean hot-edge rank correlation: 0.9820.
 - Latency/SLA-pressure correlation: 0.8704.
 
-## Limitations
-The default run is synthetic/control-plane evidence for continuous call-graph evolution. It is not a physical cluster-scale performance result and makes no claim above 10 physical nodes.

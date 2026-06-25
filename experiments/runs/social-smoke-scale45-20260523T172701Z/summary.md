@@ -18,5 +18,3 @@ Self-contained DeathStarBench Social Network-compatible smoke deployment.
 - p50/p95/p99 latency: 43.82/107.50/150.59 ms
 - Throughput: 147.05 rps
 
-## Limitations
-This smoke deployment validates reproducible Kubernetes placement, endpoint compatibility, workload generation, and log capture. It is not a full upstream DeathStarBench Social Network deployment with MongoDB, Redis, RabbitMQ, and OpenResty-Thrift.

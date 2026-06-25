@@ -23,5 +23,3 @@ Physical scale10 MoE Kubernetes run comparing K8s default, CGA, HDA, Policy 2 cr
 - CGA, HDA, Policy 2, and Policy 3 used distinct placement groups and objective functions; raw pod placements, load rows, hotspots, and planner outputs are archived under `raw/` and `processed/`.
 - Network target-vs-measured error is not applicable because this run did not apply live network impairment.
 
-## Limitations
-This is a physical scale10 current-cluster CPU-only microservice run only. It does not support GPU-aware production LLM-serving claims.

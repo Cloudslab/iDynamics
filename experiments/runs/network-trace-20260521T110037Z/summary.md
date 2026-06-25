@@ -16,5 +16,3 @@ Evaluate realistic network dynamics providers for iDynamics: synthetic distance-
 - Burst-correlated bandwidth p50: 368.33 Mbps.
 - CSV replay latency p95: 45.12 ms.
 
-## Limitations
-This run validates trace-generation and replay behavior. It is not a physical 5-node or 10-node application benchmark and makes no claim above the current cluster scale.

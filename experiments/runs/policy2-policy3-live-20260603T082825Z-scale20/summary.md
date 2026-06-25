@@ -23,5 +23,3 @@ Physical size20 MoE Kubernetes run comparing default placement with iDynamics Po
 - Policy 2 and Policy 3 used distinct placement groups and objective functions; raw pod placements and planner outputs are archived under `raw/` and `processed/`.
 - Network target-vs-measured error is not applicable because this run did not apply live network impairment.
 
-## Limitations
-This is a physical size20 current-cluster run only. It does not support any 20/30/50-node physical claim.

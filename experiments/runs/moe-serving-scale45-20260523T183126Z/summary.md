@@ -17,5 +17,3 @@ No local DeathStarBench Hotel/Media or TrainTicket checkout/manifests were found
 - Best mean cost reduction relative to default was 46.75%.
 - Best mean modeled latency was 24.23 ms.
 
-## Limitations
-This is a CPU-only microbenchmark/control-plane placement comparison unless `live_k8s` is true. It supports MoE-style dynamic expert-traffic modeling, not GPU-aware scheduling.

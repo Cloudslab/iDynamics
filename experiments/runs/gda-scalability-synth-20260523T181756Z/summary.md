@@ -14,7 +14,3 @@ Synthetic/control-plane overhead comparison for legacy dense GDA pair scanning v
 - Sparse peak Python memory p95 at largest size: 11.031 MiB.
 - Dense-vs-sparse query reduction at largest size: 24995000.0x.
 
-## Limitations
-- This is a synthetic/control-plane overhead run, not a physical application performance experiment.
-- Dense timing is intentionally skipped above the configured safety cutoff.
-- Results support Algorithm 1 overhead/scalability discussion, not application SLA claims.

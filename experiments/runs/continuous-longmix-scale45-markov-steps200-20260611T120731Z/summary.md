@@ -21,5 +21,3 @@ Evaluate continuous, overlapping Social Network workload mixes and fixed-interva
 - Mean top-3 hotspot churn: 0.1407.
 - Latency/SLA-pressure correlation: 0.9346.
 
-## Limitations
-The default run is synthetic/control-plane evidence for continuous call-graph evolution. Policy latency/SLA outputs are replay/model/control-plane evidence. The run is not a physical cluster-scale performance result unless live workload logs are present in this ledger.

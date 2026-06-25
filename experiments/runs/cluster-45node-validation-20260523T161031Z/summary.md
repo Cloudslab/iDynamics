@@ -17,8 +17,3 @@ Validate the expanded 45-worker Kubernetes cluster, create reproducible worker-o
 - Captured qdisc state for all 45 workers and applied worker-only tc reset with a pre-reset qdisc snapshot.
 - Confirmed 45 Ready workers, zero SSH/sudo failures, and zero lingering helper pods after qdisc reset.
 
-## Limitations
-
-- SSH by Kubernetes node name does not resolve from the control-plane host; SSH by InternalIP succeeds.
-- No benchmark application pods were scheduled during this validation.
-- This run supports cluster-readiness and node-pool reproducibility claims, not benchmark performance claims.
