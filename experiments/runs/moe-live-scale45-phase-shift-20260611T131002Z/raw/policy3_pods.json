@@ -1,0 +1,3300 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "7c94c6a30c12ada804fcfe0a78d615132944e8727c1201a3b1bdee8b64f78f7c",
+                    "cni.projectcalico.org/podIP": "192.168.65.17/32",
+                    "cni.projectcalico.org/podIPs": "192.168.65.17/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "aggregator-6c6dcdb59c-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "aggregator",
+                    "pod-template-hash": "6c6dcdb59c",
+                    "policy": "policy3"
+                },
+                "name": "aggregator-6c6dcdb59c-lmlsc",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "aggregator-6c6dcdb59c",
+                        "uid": "acd0c236-82f6-4da3-ade5-e0039060017d"
+                    }
+                ],
+                "resourceVersion": "13303502",
+                "uid": "f3d3162e-1171-462f-a9e2-7c9cc956cba9"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-high-bandwidth"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "aggregator"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "aggregator"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "aggregator",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-xlvmj",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-1",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-xlvmj",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:26Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:26Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://723e9b149867f84985e127a3e6ca13dcb4d75c700a54b664ded587cff9dc8176",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "aggregator",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:25Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-xlvmj",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.132.239",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.132.239"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.65.17",
+                "podIPs": [
+                    {
+                        "ip": "192.168.65.17"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:22Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "152c492e2b21a5d60981f00c228edba5a97d16388d03355fb25c49976538ead9",
+                    "cni.projectcalico.org/podIP": "192.168.82.218/32",
+                    "cni.projectcalico.org/podIPs": "192.168.82.218/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "cache-f8d8877f5-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "cache",
+                    "pod-template-hash": "f8d8877f5",
+                    "policy": "policy3"
+                },
+                "name": "cache-f8d8877f5-ct8n4",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "cache-f8d8877f5",
+                        "uid": "3a3ae7f3-8bec-43ff-a657-3e0b3f33d982"
+                    }
+                ],
+                "resourceVersion": "13303463",
+                "uid": "d91bf938-3a13-48f3-ba7b-9b1aee832e45"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "cache"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "cache"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "cache",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-fzw25",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-10",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-fzw25",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://5583b56bb0e9031884f95a21d70f7710af0651054e83cddcab1c2ef117fe76b3",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:67e6a6053f28db54c173ad84a4bf88fdd4e338793dc09672e87ee38e3b1b378c",
+                        "lastState": {},
+                        "name": "cache",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:24Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-fzw25",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.134.196",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.134.196"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.82.218",
+                "podIPs": [
+                    {
+                        "ip": "192.168.82.218"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:22Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "800420421d4518e8b448fdf8e8a79c4e22ccd350829700ef1310b28d7ea08df7",
+                    "cni.projectcalico.org/podIP": "192.168.65.12/32",
+                    "cni.projectcalico.org/podIPs": "192.168.65.12/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "expert-0-749cc4957-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-0",
+                    "pod-template-hash": "749cc4957",
+                    "policy": "policy3"
+                },
+                "name": "expert-0-749cc4957-fcwmd",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-0-749cc4957",
+                        "uid": "3d94c732-185a-4a2f-822b-023c6ee586c9"
+                    }
+                ],
+                "resourceVersion": "13303578",
+                "uid": "fb3fbf71-813f-42b9-9e29-5c889e385ec6"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-high-bandwidth"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-0"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "0"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-0",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-lmxg7",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-1",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-lmxg7",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:29Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:30Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:30Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://0e1cf7109c6d66e9c94ac87fd9a5885b3fdbfe19e6c352a4eda6c7674f4960ef",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-0",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:29Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-lmxg7",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.132.239",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.132.239"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.65.12",
+                "podIPs": [
+                    {
+                        "ip": "192.168.65.12"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:23Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "8664e298484dce00528c5ab675408ed1a1714b7c5e141a05dc2b15bb44b92161",
+                    "cni.projectcalico.org/podIP": "192.168.65.14/32",
+                    "cni.projectcalico.org/podIPs": "192.168.65.14/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "expert-1-6bb57f5645-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-1",
+                    "pod-template-hash": "6bb57f5645",
+                    "policy": "policy3"
+                },
+                "name": "expert-1-6bb57f5645-lcpqf",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-1-6bb57f5645",
+                        "uid": "a7add54e-4acb-459b-8869-76915c834866"
+                    }
+                ],
+                "resourceVersion": "13303565",
+                "uid": "a961fbca-fb2a-4bac-a785-e5b80a5def0e"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-high-bandwidth"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-1"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "1"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-1",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-prldk",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-1",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-prldk",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:26Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:29Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:29Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://ac889ec827504b52b3d96f711810d1e4661c20ccfecbec67d12e79a849c813f9",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-1",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:26Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-prldk",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.132.239",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.132.239"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.65.14",
+                "podIPs": [
+                    {
+                        "ip": "192.168.65.14"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:23Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "598d589626be2d0a2add0e2825c0aff10a98a1eebabfc0108332fbd3fe658db5",
+                    "cni.projectcalico.org/podIP": "192.168.99.239/32",
+                    "cni.projectcalico.org/podIPs": "192.168.99.239/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "expert-2-6d999b465f-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-2",
+                    "pod-template-hash": "6d999b465f",
+                    "policy": "policy3"
+                },
+                "name": "expert-2-6d999b465f-cdzvb",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-2-6d999b465f",
+                        "uid": "ab394481-530a-4278-adc0-22d749d64915"
+                    }
+                ],
+                "resourceVersion": "13303441",
+                "uid": "306afb00-5c3e-4c1e-b88a-4a0f6d656e16"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-2"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "2"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-2",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-nrr7t",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-6",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-nrr7t",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://72b8ec8d937575ec222285e85dababddc3f28bb1a5b352774cb4ab324b255bf3",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-2",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:24Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-nrr7t",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.133.114",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.133.114"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.99.239",
+                "podIPs": [
+                    {
+                        "ip": "192.168.99.239"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:23Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "35c3b146d235f35939fd70f04060ecc5d0c297a53144faeb935e82d9ea5183f8",
+                    "cni.projectcalico.org/podIP": "192.168.42.107/32",
+                    "cni.projectcalico.org/podIPs": "192.168.42.107/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:22Z",
+                "generateName": "expert-3-cf8454487-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-3",
+                    "pod-template-hash": "cf8454487",
+                    "policy": "policy3"
+                },
+                "name": "expert-3-cf8454487-6dpvj",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-3-cf8454487",
+                        "uid": "0e56b3c6-c1a1-45da-8b0d-746c778d2862"
+                    }
+                ],
+                "resourceVersion": "13303566",
+                "uid": "21c569af-61c7-4327-803e-8ec317dbd543"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-3"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "3"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-3",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-ps4w6",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-3",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-ps4w6",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:29Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:29Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://a977b478c42b3deab21139d85e6617cc2a815ecf3983f727f0c07dc0598242bb",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-3",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:26Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-ps4w6",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.128.41",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.128.41"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.42.107",
+                "podIPs": [
+                    {
+                        "ip": "192.168.42.107"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:24Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "a399a445b0784957803cd2d09ac4d37030cc423d82380e5f7f8863694a39cb58",
+                    "cni.projectcalico.org/podIP": "192.168.173.160/32",
+                    "cni.projectcalico.org/podIPs": "192.168.173.160/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:24Z",
+                "generateName": "expert-4-7d4fd78879-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-4",
+                    "pod-template-hash": "7d4fd78879",
+                    "policy": "policy3"
+                },
+                "name": "expert-4-7d4fd78879-6fzdk",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-4-7d4fd78879",
+                        "uid": "99d73807-a54c-4d6e-8b70-6464900a21e8"
+                    }
+                ],
+                "resourceVersion": "13303514",
+                "uid": "32b0c2a3-3184-4194-96df-a22fad0c214f"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-4"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "4"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-4",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-dhjpc",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-8",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-dhjpc",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:27Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:27Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://4268810fe62cb729df6ca5fb12d7393ba9b2fd42a3b9cd873358a75caed50e3e",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-4",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:26Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-dhjpc",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.135.182",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.135.182"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.173.160",
+                "podIPs": [
+                    {
+                        "ip": "192.168.173.160"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:24Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "f16cefd3b8f404df81263fafd0768b0985f61a67a38a5db9dc60c16ff730b309",
+                    "cni.projectcalico.org/podIP": "192.168.71.83/32",
+                    "cni.projectcalico.org/podIPs": "192.168.71.83/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:24Z",
+                "generateName": "expert-5-8b79949f-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "expert-5",
+                    "pod-template-hash": "8b79949f",
+                    "policy": "policy3"
+                },
+                "name": "expert-5-8b79949f-qqdmh",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "expert-5-8b79949f",
+                        "uid": "32110ba9-0b26-49bf-a1e9-d474849af343"
+                    }
+                ],
+                "resourceVersion": "13303501",
+                "uid": "d4f2e498-2bdb-4f4f-b391-96e1b943add0"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "expert"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "expert-5"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            },
+                            {
+                                "name": "EXPERT_ID",
+                                "value": "5"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "expert-5",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-wrg2t",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-9",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-wrg2t",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:26Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:26Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://0cd29d0a1366a10aec54e25a20e14420a5ab7211e6048593d418de70776d2e5c",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "expert-5",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:25Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-wrg2t",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.133.87",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.133.87"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.71.83",
+                "podIPs": [
+                    {
+                        "ip": "192.168.71.83"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:24Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "28c78334f0639326db4408b8db220857e3707e9e465512f3d7b7aafc33bb9d92",
+                    "cni.projectcalico.org/podIP": "192.168.222.42/32",
+                    "cni.projectcalico.org/podIPs": "192.168.222.42/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:21Z",
+                "generateName": "frontend-578487b49c-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "frontend",
+                    "pod-template-hash": "578487b49c",
+                    "policy": "policy3"
+                },
+                "name": "frontend-578487b49c-h7db9",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "frontend-578487b49c",
+                        "uid": "c256ed48-3480-45d7-af1b-69e1575e75d6"
+                    }
+                ],
+                "resourceVersion": "13303513",
+                "uid": "c22fd360-48f2-49c9-88a1-682f4c8059d3"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "frontend"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "frontend"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "frontend",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-f2xf8",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-7",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-f2xf8",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:24Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:21Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:27Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:27Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:21Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://3125f8258124bb62ba82d70ef30d4c8d890760b433847e7b306175ec8ad57ab4",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "frontend",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:24Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-f2xf8",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.135.227",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.135.227"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.222.42",
+                "podIPs": [
+                    {
+                        "ip": "192.168.222.42"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:21Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "b3d0c25431f354eefce427803bddd7a38704e9fa50354e450644d49b47f37587",
+                    "cni.projectcalico.org/podIP": "192.168.65.13/32",
+                    "cni.projectcalico.org/podIPs": "192.168.65.13/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:21Z",
+                "generateName": "router-74d974449c-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "router",
+                    "pod-template-hash": "74d974449c",
+                    "policy": "policy3"
+                },
+                "name": "router-74d974449c-xvj4h",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "router-74d974449c",
+                        "uid": "bcde5ec0-4769-49b1-afc7-262d2f7fc73c"
+                    }
+                ],
+                "resourceVersion": "13303542",
+                "uid": "495004e5-cac2-4120-86ee-0cc93655221c"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-high-bandwidth"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "router"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "router"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "router",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-kn8bx",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-1",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-kn8bx",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:25Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:28Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:28Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:21Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://73cb623be4423d230a3ae5830051a13301396aa1cb0380283a38dd02f116a68e",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "router",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:25Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-kn8bx",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.132.239",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.132.239"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.65.13",
+                "podIPs": [
+                    {
+                        "ip": "192.168.65.13"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:22Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "annotations": {
+                    "cni.projectcalico.org/containerID": "0efbd53630e8ecc4bd74dc6188080a69aaeb29ddf3efa3fd7cc1802a573eba82",
+                    "cni.projectcalico.org/podIP": "192.168.71.86/32",
+                    "cni.projectcalico.org/podIPs": "192.168.71.86/32",
+                    "prometheus.io/port": "8080",
+                    "prometheus.io/scrape": "true"
+                },
+                "creationTimestamp": "2026-06-11T13:12:21Z",
+                "generateName": "tokenizer-b8bdbd7f7-",
+                "generation": 1,
+                "labels": {
+                    "app": "moe-serving",
+                    "component": "tokenizer",
+                    "pod-template-hash": "b8bdbd7f7",
+                    "policy": "policy3"
+                },
+                "name": "tokenizer-b8bdbd7f7-7g9tf",
+                "namespace": "moe-live-scale45-phase-shift-20260611t131002z-policy3",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "tokenizer-b8bdbd7f7",
+                        "uid": "16a719dc-8b3c-44b6-afb4-0f0956c3bcce"
+                    }
+                ],
+                "resourceVersion": "13303336",
+                "uid": "5e7e4d19-9f8d-4daa-b32a-3f2c284b95d9"
+            },
+            "spec": {
+                "affinity": {
+                    "nodeAffinity": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "nodeSelectorTerms": [
+                                {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "idynamics.io/placement-group",
+                                            "operator": "In",
+                                            "values": [
+                                                "moe-cold"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                "containers": [
+                    {
+                        "command": [
+                            "python3",
+                            "/app/server.py"
+                        ],
+                        "env": [
+                            {
+                                "name": "MOE_ROLE",
+                                "value": "tokenizer"
+                            },
+                            {
+                                "name": "SERVICE_NAME",
+                                "value": "tokenizer"
+                            },
+                            {
+                                "name": "EXPERTS",
+                                "value": "6"
+                            },
+                            {
+                                "name": "COMPUTE_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "EXPERT_DELAY_MS",
+                                "value": "5.0"
+                            },
+                            {
+                                "name": "PAYLOAD_BYTES",
+                                "value": "256"
+                            }
+                        ],
+                        "image": "python:3.11-slim",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "tokenizer",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "http",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "httpGet": {
+                                "path": "/healthz",
+                                "port": 8080,
+                                "scheme": "HTTP"
+                            },
+                            "initialDelaySeconds": 1,
+                            "periodSeconds": 3,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-2vn8b",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "emu-worker-9",
+                "nodeSelector": {
+                    "idynamics.dev/scale45": "true"
+                },
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "moe-server"
+                        },
+                        "name": "server"
+                    },
+                    {
+                        "name": "kube-api-access-2vn8b",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:22Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:21Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:23Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-06-11T13:12:21Z",
+                        "observedGeneration": 1,
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "containerID": "cri-o://572f4a99a424b81a185df6a11f43f13645d2efa9b072accde3c93144b949f17e",
+                        "image": "docker.io/library/python:3.11-slim",
+                        "imageID": "docker.io/library/python@sha256:2c285c669cc837aa3bcf1af23ea1932b7b5214f9c9d3aad22417446ad91cb4fb",
+                        "lastState": {},
+                        "name": "tokenizer",
+                        "ready": true,
+                        "resources": {},
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-06-11T13:12:22Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/app",
+                                "name": "server"
+                            },
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-2vn8b",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.26.133.87",
+                "hostIPs": [
+                    {
+                        "ip": "172.26.133.87"
+                    }
+                ],
+                "observedGeneration": 1,
+                "phase": "Running",
+                "podIP": "192.168.71.86",
+                "podIPs": [
+                    {
+                        "ip": "192.168.71.86"
+                    }
+                ],
+                "qosClass": "BestEffort",
+                "resources": {},
+                "startTime": "2026-06-11T13:12:21Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

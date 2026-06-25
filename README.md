@@ -8,6 +8,21 @@ The repository hosts the research prototype used in our iDynamics papers and pro
 
 ---
 
+## Paper and cleaned artifacts
+
+- Manuscript: `IEEE_TSC_iDynamics_Revision.pdf`
+- Cleaned experiment references: `experiments/README.md`
+- Per-run artifacts: `experiments/runs/README.md`
+- User-facing benchmark packages: `benchmarks/`
+
+The experiment run directories in this repository are intentionally cleaned for
+paper readers. Debug logs, local Git status, command logs, Codex metadata, and
+deprecated claim note files are not included here; the run folders keep
+configuration, raw evidence, processed metrics, summaries, and figures when
+present.
+
+---
+
 ## What is “controllable dynamics”?
 
 In iDynamics, *controllable dynamics* means you can systematically:

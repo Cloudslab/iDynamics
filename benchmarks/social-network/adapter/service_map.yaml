@@ -1,0 +1,77 @@
+benchmark: social-network
+namespace_default: idyn-social-network
+entrypoints:
+  - name: nginx-thrift
+    service: nginx-thrift
+    port: 8080
+    protocol: HTTP/OpenResty-Thrift
+    path: /wrk2-api/home-timeline/read
+services:
+  nginx-thrift:
+    role: edge
+    downstream:
+      - compose-post-service
+      - home-timeline-service
+      - user-timeline-service
+      - user-service
+      - text-service
+      - unique-id-service
+      - media-service
+  compose-post-service:
+    role: application
+    downstream:
+      - post-storage-service
+      - user-timeline-service
+      - home-timeline-service
+      - social-graph-service
+  home-timeline-service:
+    role: application
+    downstream:
+      - home-timeline-redis
+      - post-storage-service
+  user-timeline-service:
+    role: application
+    downstream:
+      - user-timeline-redis
+      - user-timeline-mongodb
+      - post-storage-service
+  user-service:
+    role: application
+    downstream:
+      - user-mongodb
+      - user-memcached
+  post-storage-service:
+    role: application
+    downstream:
+      - post-storage-mongodb
+      - post-storage-memcached
+  social-graph-service:
+    role: application
+    downstream:
+      - social-graph-mongodb
+      - social-graph-redis
+  text-service:
+    role: application
+    downstream:
+      - user-mention-service
+      - url-shorten-service
+  media-service:
+    role: application
+    downstream:
+      - media-mongodb
+      - media-memcached
+dependencies:
+  - jaeger
+  - media-frontend
+  - media-memcached
+  - media-mongodb
+  - post-storage-memcached
+  - post-storage-mongodb
+  - social-graph-mongodb
+  - social-graph-redis
+  - url-shorten-memcached
+  - url-shorten-mongodb
+  - user-memcached
+  - user-mongodb
+  - user-timeline-mongodb
+  - user-timeline-redis

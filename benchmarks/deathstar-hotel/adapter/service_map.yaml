@@ -1,0 +1,63 @@
+benchmark: deathstar-hotel
+namespace_default: idyn-dsb-hotel
+entrypoints:
+  - name: frontend
+    service: frontend
+    port: 5000
+    protocol: HTTP
+    path: /
+services:
+  frontend:
+    role: edge
+    downstream:
+      - search
+      - profile
+      - recommendation
+      - user
+  search:
+    role: application
+    downstream:
+      - geo
+      - rate
+  reservation:
+    role: application
+    downstream:
+      - profile
+      - rate
+      - user
+      - mongodb-reservation
+      - memcached-reserve
+  profile:
+    role: application
+    downstream:
+      - mongodb-profile
+      - memcached-profile
+  rate:
+    role: application
+    downstream:
+      - mongodb-rate
+      - memcached-rate
+  recommendation:
+    role: application
+    downstream:
+      - mongodb-recommendation
+  geo:
+    role: application
+    downstream:
+      - mongodb-geo
+  user:
+    role: application
+    downstream:
+      - mongodb-user
+dependencies:
+  - consul
+  - jaeger
+  - memcached-profile
+  - memcached-rate
+  - memcached-reserve
+  - mongodb-geo
+  - mongodb-profile
+  - mongodb-rate
+  - mongodb-recommendation
+  - mongodb-reservation
+  - mongodb-user

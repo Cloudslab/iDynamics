@@ -1,0 +1,1011 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moe-serving
+  labels:
+    app: moe-serving
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: frontend
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: frontend
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: frontend
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "frontend"
+        - name: SERVICE_NAME
+          value: "frontend"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: frontend
+spec:
+  selector:
+    app: moe-serving
+    component: frontend
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tokenizer
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: tokenizer
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: tokenizer
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: tokenizer
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: tokenizer
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "tokenizer"
+        - name: SERVICE_NAME
+          value: "tokenizer"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tokenizer
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: tokenizer
+spec:
+  selector:
+    app: moe-serving
+    component: tokenizer
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: router
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: router
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: router
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: router
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: router
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "router"
+        - name: SERVICE_NAME
+          value: "router"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: router
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: router
+spec:
+  selector:
+    app: moe-serving
+    component: router
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: aggregator
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: aggregator
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: aggregator
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: aggregator
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "aggregator"
+        - name: SERVICE_NAME
+          value: "aggregator"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregator
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: aggregator
+spec:
+  selector:
+    app: moe-serving
+    component: aggregator
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: cache
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: cache
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: cache
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "cache"
+        - name: SERVICE_NAME
+          value: "cache"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: cache
+spec:
+  selector:
+    app: moe-serving
+    component: cache
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-0
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-0
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-0
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-0
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-0
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-0"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "0"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-0
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-0
+spec:
+  selector:
+    app: moe-serving
+    component: expert-0
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-1
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-1
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-1
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-1
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-1
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-1"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "1"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-1
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-1
+spec:
+  selector:
+    app: moe-serving
+    component: expert-1
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-2
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-2
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-2
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-2
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-2
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-2"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "2"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-2
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-2
+spec:
+  selector:
+    app: moe-serving
+    component: expert-2
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-3
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-3
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-3
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-3
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-3
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-3"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "3"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-3
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-3
+spec:
+  selector:
+    app: moe-serving
+    component: expert-3
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-4
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-4
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-4
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-4
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-4
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-4"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "4"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-4
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-4
+spec:
+  selector:
+    app: moe-serving
+    component: expert-4
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-5
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-5
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-5
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-5
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-5
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-5"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "5"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-5
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-5
+spec:
+  selector:
+    app: moe-serving
+    component: expert-5
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-6
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-6
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-6
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-6
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-6
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-6"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "6"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-6
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-6
+spec:
+  selector:
+    app: moe-serving
+    component: expert-6
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expert-7
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-7
+    placement-policy: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moe-serving
+      component: expert-7
+  template:
+    metadata:
+      labels:
+        app: moe-serving
+        component: expert-7
+        placement-policy: default
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      nodeSelector:
+        idynamics.dev/scale20: "true"
+
+      containers:
+      - name: expert-7
+        image: moe-serving:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: MOE_ROLE
+          value: "expert"
+        - name: SERVICE_NAME
+          value: "expert-7"
+        - name: EXPERTS
+          value: "8"
+        - name: COMPUTE_DELAY_MS
+          value: "5.0"
+        - name: EXPERT_DELAY_MS
+          value: "5.0"
+        - name: PAYLOAD_BYTES
+          value: "256"
+        - name: CACHE_HIT_RATIO
+          value: "0.3"
+        - name: EXPERT_ID
+          value: "7"
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 2
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expert-7
+  namespace: moe-serving
+  labels:
+    app: moe-serving
+    component: expert-7
+spec:
+  selector:
+    app: moe-serving
+    component: expert-7
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+

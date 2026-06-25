@@ -1,0 +1,666 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: social-smoke-scale10-20260523t172647z
+  labels:
+    benchmark: social-network-smoke
+    istio-injection: disabled
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: social-smoke-server
+  namespace: social-smoke-scale10-20260523t172647z
+data:
+  server.py: |
+    import json
+    import os
+    import time
+    import urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse
+    
+    ROLE = os.environ.get("ROLE", "backend")
+    PORT = int(os.environ.get("PORT", "8080"))
+    
+    
+    def call(service, path="/internal"):
+        url = f"http://{service}:8080{path}"
+        with urllib.request.urlopen(url, timeout=2) as response:
+            response.read()
+    
+    
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            return
+    
+        def _send(self, status=200, payload=None):
+            body = json.dumps(payload or {"service": ROLE, "ok": True}).encode()
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+    
+        def do_GET(self):
+            path = urlparse(self.path).path
+            if path == "/healthz":
+                self._send()
+                return
+            if ROLE == "nginx-thrift":
+                start = time.perf_counter()
+                if path == "/wrk2-api/post/compose":
+                    for svc in ["user-service", "text-service", "unique-id-service", "media-service", "compose-post-service", "user-timeline-service", "home-timeline-service"]:
+                        call(svc)
+                elif path == "/wrk2-api/home-timeline/read":
+                    for svc in ["home-timeline-service", "post-storage-service", "user-service"]:
+                        if svc == "post-storage-service":
+                            time.sleep(0.003)
+                        else:
+                            call(svc)
+                elif path == "/wrk2-api/user-timeline/read":
+                    for svc in ["user-timeline-service", "user-service"]:
+                        call(svc)
+                else:
+                    self._send(404, {"error": "unknown social endpoint", "path": path})
+                    return
+                self._send(200, {"service": ROLE, "path": path, "elapsed_ms": (time.perf_counter() - start) * 1000.0})
+                return
+            delay_ms = float(os.environ.get("DELAY_MS", "3.0"))
+            time.sleep(delay_ms / 1000.0)
+            self._send(200, {"service": ROLE})
+    
+    
+    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-thrift
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: nginx-thrift
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: nginx-thrift
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: nginx-thrift
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "nginx-thrift"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-thrift
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: nginx-thrift
+spec:
+  selector:
+    app: social-network-smoke
+    component: nginx-thrift
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compose-post-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: compose-post-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: compose-post-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: compose-post-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "compose-post-service"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compose-post-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: compose-post-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: compose-post-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-timeline-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: home-timeline-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: home-timeline-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: home-timeline-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "home-timeline-service"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-timeline-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: home-timeline-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: home-timeline-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-timeline-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: user-timeline-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: user-timeline-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: user-timeline-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "user-timeline-service"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-timeline-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: user-timeline-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: user-timeline-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: user-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: user-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "user-service"
+        - name: DELAY_MS
+          value: "1.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: user-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: user-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: text-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: text-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: text-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: text-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "text-service"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: text-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: text-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: text-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unique-id-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: unique-id-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: unique-id-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: unique-id-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "unique-id-service"
+        - name: DELAY_MS
+          value: "1.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unique-id-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: unique-id-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: unique-id-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: media-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-network-smoke
+      component: media-service
+  template:
+    metadata:
+      labels:
+        app: social-network-smoke
+        component: media-service
+    spec:
+      nodeSelector:
+        idynamics.dev/scale10: "true"
+      containers:
+      - name: server
+        image: python:3.11-slim
+        imagePullPolicy: IfNotPresent
+        command: ["python3", "/app/server.py"]
+        env:
+        - name: ROLE
+          value: "media-service"
+        - name: DELAY_MS
+          value: "3.0"
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: server
+          mountPath: /app
+      volumes:
+      - name: server
+        configMap:
+          name: social-smoke-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-service
+  namespace: social-smoke-scale10-20260523t172647z
+  labels:
+    app: social-network-smoke
+    component: media-service
+spec:
+  selector:
+    app: social-network-smoke
+    component: media-service
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
