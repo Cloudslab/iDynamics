@@ -1,0 +1,55 @@
+benchmark: online-boutique
+namespace_default: idyn-online-boutique
+entrypoints:
+  - name: frontend
+    service: frontend
+    port: 80
+    protocol: HTTP
+    path: /
+services:
+  frontend:
+    role: edge
+    protocol: HTTP
+    downstream: [productcatalogservice, currencyservice, cartservice, recommendationservice, checkoutservice, adservice]
+  checkoutservice:
+    role: application
+    protocol: gRPC
+    downstream: [cartservice, productcatalogservice, currencyservice, paymentservice, shippingservice, emailservice]
+  recommendationservice:
+    role: application
+    protocol: gRPC
+    downstream: [productcatalogservice]
+  cartservice:
+    role: application
+    protocol: gRPC
+    downstream: [redis-cart]
+  productcatalogservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  currencyservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  paymentservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  shippingservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  emailservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  adservice:
+    role: application
+    protocol: gRPC
+    downstream: []
+  redis-cart:
+    role: stateful_dependency
+    protocol: Redis
+    downstream: []
+excluded_from_app_occupancy:
+  - loadgenerator

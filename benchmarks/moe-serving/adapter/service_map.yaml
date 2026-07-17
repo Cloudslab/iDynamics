@@ -1,0 +1,40 @@
+benchmark: moe-serving
+namespace_default: idyn-moe-serving
+runtime_boundary:
+  cpu_only: true
+entrypoints:
+  - name: frontend
+    service: frontend
+    port: 8080
+    protocol: HTTP
+    path: /infer
+services:
+  frontend:
+    role: edge
+    protocol: HTTP
+    downstream: [tokenizer, router, aggregator]
+  tokenizer:
+    role: application
+    protocol: HTTP
+    downstream: []
+  router:
+    role: dynamic_gate
+    protocol: HTTP
+    downstream_pattern: expert-{index}
+  expert-{index}:
+    role: expert
+    protocol: HTTP
+    downstream: []
+  aggregator:
+    role: fan_in
+    protocol: HTTP
+    downstream: [cache]
+  cache:
+    role: stateful_dependency
+    protocol: HTTP
+    downstream: []
+dynamic_edges:
+  - source: router
+    destination_pattern: expert-{index}
+    weight_source: expert_popularity
+metrics_endpoint: /metrics

@@ -1,0 +1,36 @@
+benchmark: social-network
+namespace_default: idyn-social-network
+entrypoints:
+  - name: nginx-thrift
+    service: nginx-thrift
+    port: 8080
+    protocol: HTTP/OpenResty-Thrift
+    path: /wrk2-api/home-timeline/read
+services:
+  nginx-thrift:
+    role: edge
+    downstream: [compose-post-service, home-timeline-service, user-timeline-service]
+  compose-post-service:
+    role: application
+    downstream: [post-storage-service, user-timeline-service, home-timeline-service, social-graph-service]
+  home-timeline-service:
+    role: application
+    downstream: [home-timeline-redis, post-storage-service]
+  user-timeline-service:
+    role: application
+    downstream: [user-timeline-redis, user-timeline-mongodb, post-storage-service]
+  user-service:
+    role: application
+    downstream: [user-mongodb, user-memcached]
+  text-service:
+    role: application
+    downstream: [user-mention-service, url-shorten-service]
+  media-service:
+    role: application
+    downstream: [media-mongodb, media-memcached]
+dependencies:
+  - jaeger
+  - media-frontend
+  - memcached services
+  - mongodb services
+  - redis services

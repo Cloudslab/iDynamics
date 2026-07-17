@@ -1,0 +1,4 @@
+| source | p50_ms | p95_ms | p99_ms | cv | peak_to_median | lag1 | probe_count | sample_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ripe_atlas | 22.63 | 75.71 | 79.65 | 1.864 | 115.999 | 0.066 | 8 | 2756 |
+| fitted_burst_correlated | 24.50 | 64.96 | 84.00 | 0.520 | 4.551 | 0.859 |  |  |

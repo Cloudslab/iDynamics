@@ -1,0 +1,31 @@
+benchmark: moe-serving
+generator: bounded-http-load
+runtime_boundary:
+  cpu_only: true
+default:
+  experts: 4
+  duration_seconds: 45
+  concurrency: 8
+  top_k: 2
+  compute_delay_ms: 5
+  payload_bytes: 1024
+request_types:
+  - single_expert
+  - multi_expert_top2
+  - multi_expert_top4
+  - cache_hit
+  - cache_miss
+  - payload_small
+  - payload_large
+  - batch_small
+  - batch_large
+paths:
+  - path: /infer?request_type=single_expert&top_k=1&payload_bytes=256
+    weight: 25
+  - path: /infer?request_type=multi_expert_top2&top_k=2&payload_bytes=1024
+    weight: 35
+  - path: /infer?request_type=multi_expert_top4&top_k=4&payload_bytes=2048
+    weight: 20
+  - path: /infer?request_type=cache_hit&top_k=1&cache_intent=hit
+    weight: 20
+claim_boundary: CPU-only MoE-style routing benchmark; not GPU-aware LLM serving.

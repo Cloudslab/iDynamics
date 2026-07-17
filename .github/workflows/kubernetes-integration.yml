@@ -1,0 +1,37 @@
+name: Kubernetes Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Runner label with Kubernetes testbed access.
+        required: true
+        default: self-hosted
+
+permissions:
+  contents: read
+
+jobs:
+  live-cluster:
+    runs-on: ${{ inputs.runner }}
+    env:
+      IDYNAMICS_RUN_LIVE_CLUSTER: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install cluster dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,cluster]"
+
+      - name: Show Kubernetes client
+        run: kubectl version --client=true
+
+      - name: Run live-cluster tests
+        run: make live-cluster-test

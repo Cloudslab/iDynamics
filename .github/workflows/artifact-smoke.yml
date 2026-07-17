@@ -1,0 +1,59 @@
+name: Artifact Smoke
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/artifact-smoke.yml"
+      - "Makefile"
+      - "pyproject.toml"
+      - "setup.cfg"
+      - "reproducibility/**"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+  pull_request:
+    paths:
+      - ".github/workflows/artifact-smoke.yml"
+      - "Makefile"
+      - "pyproject.toml"
+      - "setup.cfg"
+      - "reproducibility/**"
+      - "scripts/**"
+      - "src/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run artifact smoke reproduction
+        run: make artifact-smoke
+
+      - name: Upload generated smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-smoke-output
+          path: reproducibility/generated/smoke
+          if-no-files-found: ignore

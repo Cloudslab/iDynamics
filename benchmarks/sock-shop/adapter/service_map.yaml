@@ -1,0 +1,40 @@
+benchmark: sock-shop
+namespace_default: idyn-sock-shop
+entrypoints:
+  - name: front-end
+    service: front-end
+    port: 80
+    protocol: HTTP
+    path: /
+services:
+  front-end:
+    role: edge
+    downstream: [catalogue, carts, orders, user]
+  catalogue:
+    role: application
+    downstream: [catalogue-db]
+  carts:
+    role: application
+    downstream: [carts-db]
+  orders:
+    role: application
+    downstream: [orders-db, payment, shipping]
+  payment:
+    role: application
+    downstream: []
+  shipping:
+    role: application
+    downstream: [queue-master]
+  queue-master:
+    role: application
+    downstream: [rabbitmq]
+  user:
+    role: application
+    downstream: [user-db]
+dependencies:
+  - carts-db
+  - catalogue-db
+  - orders-db
+  - rabbitmq
+  - session-db
+  - user-db

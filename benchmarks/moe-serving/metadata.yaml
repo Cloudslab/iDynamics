@@ -1,0 +1,39 @@
+benchmark: moe-serving
+display_name: CPU-only MoE Serving Microbenchmark
+category: repository-local microservice benchmark
+status: packaged adapter
+priority: primary-moe
+source:
+  local_path: benchmarks/moe-serving/app/server.py
+  implementation: dependency-free Python HTTP service
+  vendored: false
+license:
+  repository_metadata: MIT
+default_namespace: idyn-moe-serving
+adapter_files:
+  service_map: adapter/service_map.yaml
+  workload_mix: adapter/workload_mix.yaml
+  replica_profiles: adapter/replica_profiles.yaml
+scripts:
+  fetch: scripts/fetch.sh
+  deploy: scripts/deploy.sh
+  smoke: scripts/smoke.sh
+  load: scripts/load.sh
+  collect: scripts/collect.sh
+  cleanup: scripts/cleanup.sh
+  reproduce: scripts/reproduce.sh
+deployment:
+  method: generated Kubernetes Deployment and Service manifests
+  entry_service: frontend
+  entry_port: 8080
+runtime_boundary:
+  cpu_only: true
+  gpu_required: false
+  external_model_weights_required: false
+telemetry:
+  mesh: Istio
+  namespace_label: idynamics.dev/benchmark=moe-serving
+known_limitations:
+  - Models MoE routing, fan-out, fan-in, payload, and cache effects with CPU work only.
+  - Does not claim GPU scheduling, model serving throughput, or production LLM inference behavior.
+  - Uses Python standard-library HTTP services for portability rather than optimized serving stacks.

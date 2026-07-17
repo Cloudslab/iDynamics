@@ -1,0 +1,96 @@
+manifest_version: 1
+candidate:
+  package_name: "idynamics"
+  package_version: "0.1.0"
+  release_state: "release-candidate-preparation"
+  prepared_on_utc: "2026-06-24"
+  tag_status: "not tagged"
+  publication_status: "not published"
+
+source_tree:
+  included_public_paths:
+    - "README.md"
+    - "LICENSE"
+    - "CITATION.cff"
+    - "CHANGELOG.md"
+    - "RELEASE_NOTES.md"
+    - "CONTRIBUTING.md"
+    - "CODE_OF_CONDUCT.md"
+    - "SECURITY.md"
+    - "THIRD_PARTY_NOTICES.md"
+    - "pyproject.toml"
+    - "setup.cfg"
+    - "Makefile"
+    - ".github/"
+    - "docs/"
+    - "src/"
+    - "scripts/"
+    - "tests/"
+    - "benchmarks/"
+    - "reproducibility/"
+  excluded_from_git_release:
+    - "large raw run ledgers"
+    - "environment snapshots"
+    - "operational logs not curated for public review"
+    - "cluster access files"
+    - "secret material"
+    - "command histories"
+    - "external benchmark source trees fetched under external/"
+    - "local build outputs under build/ and dist/"
+    - "generated artifact outputs under reproducibility/generated/"
+
+artifact_package:
+  top_level_manifest: "reproducibility/manifest.yaml"
+  expanded_manifest: "reproducibility/artifact-manifest.yaml"
+  item_root: "reproducibility/items"
+  item_scope: "Data-only package for manuscript Tables I-VIII and Figures 7-9."
+  claim_boundary_source: "claim_boundary fields in top-level and item manifests"
+  validation_entrypoint: "reproducibility/validate_artifacts.py"
+
+validation_commands:
+  required_before_tag:
+    - command: "make check"
+      purpose: "Run discovery, lint, tests excluding live-cluster markers, and package build."
+    - command: "make artifact-smoke"
+      purpose: "Regenerate representative data-only artifacts and run checksum/public-text validation."
+    - command: "make artifact-validate"
+      purpose: "Validate all committed data-only artifacts and regenerated outputs."
+    - command: "python3 reproducibility/reproduce_all.py --mode full-cluster-plan"
+      purpose: "List live-cluster rerun plans without executing them."
+  optional_live_cluster:
+    - command: "make live-cluster-test"
+      purpose: "Run only on a prepared Kubernetes testbed."
+
+large_data_archive:
+  archive_status: "external archive not included in the Git repository"
+  recommended_archive_name: "idynamics-large-data-v0.1.0.tar.zst"
+  required_archive_files:
+    - "MANIFEST.yaml"
+    - "SHA256SUMS"
+    - "README.md"
+  recommended_archive_layout:
+    - "runs/<run-id>/raw/"
+    - "runs/<run-id>/processed/"
+    - "runs/<run-id>/figures/"
+    - "runs/<run-id>/logs/"
+  manifest_requirements:
+    - "run_id"
+    - "evidence_type"
+    - "claim_boundary"
+    - "source_command"
+    - "collection_date"
+    - "software_version_or_commit"
+    - "public_release_approval"
+  archive_exclusions:
+    - "secret material"
+    - "cluster access files"
+    - "SSH secret material"
+    - "bearer-token material"
+    - "private hostnames and IP addresses"
+    - "private command histories"
+    - "local cache directories"
+
+release_notes:
+  changelog: "CHANGELOG.md"
+  candidate_notes: "RELEASE_NOTES.md"
+  release_preparation_guide: "docs/release-preparation.md"
