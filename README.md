@@ -136,8 +136,6 @@ After fixing the known repository-root defect in `test_continuous_longmix.py`, r
 python3 -m pytest -q scripts/experiments/tests
 ```
 
-In the snapshot reviewed on 1 September 2026, 49 tests pass and one fails because the test constructs a duplicated script path. Re-run and update this statement after the fix.
-
 
 
 
