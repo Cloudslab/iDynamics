@@ -8,7 +8,7 @@ iDynamics is an open research framework for running real Kubernetes microservice
 
 The framework combines runtime telemetry, network emulation and a pluggable scheduling-policy interface. It supports live-cluster experiments and cluster-free replay workflows, with configuration and evidence retained in per-run ledgers.
 
-**Manuscript:** *iDynamics: A Configurable Emulation Framework for Evaluating Microservice Scheduling Policies under Controllable Cloud-Edge Dynamics*, IEEE Transactions on Services Computing, 2026 (**Accepted!**, to appear).  
+**Manuscript:** *iDynamics: A Configurable Emulation Framework for Evaluating Microservice Scheduling Policies under Controllable Cloud-Edge Dynamics*, IEEE Transactions on Services Computing $\color{red}{\textit{(CCF A; CORE A*; JCR Q1)}}$, 2026 (**Accepted!**, to appear).  
 **Paper:** <https://arxiv.org/abs/2503.16029>  
 **First author:** Ming Chen
 
